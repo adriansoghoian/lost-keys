@@ -4,8 +4,11 @@ from secrets import git_access_token
 
 
 def get_file(file_path):
-    response = urllib2.urlopen(file_path).read()
-    return response
+    try:
+        response = urllib2.urlopen(file_path).read()
+        return response
+    except:
+        return ""
 
 
 def scan_text(text, band=15):
@@ -42,47 +45,25 @@ def scan_text(text, band=15):
 
 def detect_keys_in_file(file_batch):
     repo_dict = {}
-    current_repo = file_batch[0].split('/')[3] + '/' + file_batch[0].split('/')[4]
-    repo_dict[current_repo] = {}
-
     for f in file_batch:
-        username = f.split('/')[3]
-        repo = f.split('/')[4]
-        r = username + '/' + repo
+        repo_path = f.split('/')[3] + '/' + f.split('/')[4]
+        if repo_path not in repo_dict.keys():
+            repo_dict[repo_path] = []
+        candidates_in_file = scan_text(text=get_file(file_path=f))
+        candidates_in_file = [ {each: f} for each in candidates_in_file ]
+        repo_dict[repo_path] += candidates_in_file
+    return dedupe_dict(repo_dict)
 
-        if 'repo_dict' not in repo_dict[r].keys():
-            repo_dict[r]['repo_keys'] = []
 
-        if r in repo_dict.keys():
-            candidates_in_file = scan_text(text=get_file(file_path=f))
-            repo_dict[r]['repo_keys'] += candidates_in_file
-            repo_dict[r][f] = candidates_in_file
-        else:
-            repo_dict[r]['repo_keys'] = dedupe(repo_dict[r]['repo_keys'])
-            repo_dict[r] = {}
-
-        # if r == current_repo:
-        #     candidate = scan_text(text=get_file(file_path=f))
-        #     current_repo_candidates += candidate
-        #     file_paths += f*len(candidate)
-        # else:
-        #     current_repo = r
-        #     current_repo_dict = {}
-
-        # candidate = scan_text(text=get_file(file_path=f)
-
-        # username = f.split('/')[3]
-        # repo = f.split('/')[4]
-        # candidate = scan_text(text=get_file(file_path=f)
-        # if repo in candidates.keys():
-        #     for c in candidate:
-        #         if c not in candidates[repo]
-        #         # candidates[repo] += 
-        #     candidates[repo].append(candidate))
-        # else:
-        #     candidates[repo] = candidate
-
-    return repo_dict
+def dedupe_dict(file_dict):
+    output_dict = {}
+    repos = file_dict.keys()
+    for repo in repos: 
+        list_of_dicts = file_dict[repo]
+        for d in list_of_dicts:
+            for k, v in d.iteritems():
+                output_dict[k] = v
+    return output_dict
 
 
 def dedupe(seq):
@@ -95,40 +76,8 @@ def dedupe(seq):
 
 if __name__ == '__main__':
     TEST = [
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/__init__.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/admin.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/found_keys.p',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/helpers.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/items.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/migrations/0001_initial.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/migrations/__init__.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/models.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/patterns.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/scanner.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/scraper.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/tests.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/twilio.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/twilio_auth_token.p',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/twilio_auth_token.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/key/views.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/keycommit/__init__.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/keycommit/settings.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/keycommit/urls.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/keycommit/wsgi.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/manage.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/static/app.js',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/keycommit/static/scan.js',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/parser/config.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/parser/key_finder.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/scrapscrap/__init__.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/scrapscrap/items.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/scrapscrap/pipelines.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/scrapscrap/settings.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/scrapscrap/spiders/__init__.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/scrapscrap/spiders/github_spider.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/scrapy.cfg',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/twilio.py',
-'https://raw.githubusercontent.com/AVatch/keycommit/master/scrapscrap/urls.p',
+"https://raw.githubusercontent.com/adriansoghoian/DevPolls/master/models/question.rb",
+"https://raw.githubusercontent.com/adriansoghoian/Discoveree/master/discoveree/.env"
     ]
     start = datetime.now()
 

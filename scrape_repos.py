@@ -17,11 +17,14 @@ def get_files(repo, username, access_token=git_access_token):
     endpoint = "https://api.github.com/repos/" + \
         username + "/" + repo + "/git/trees/master?recursive=1&access_token="\
         + access_token
-    response = urllib2.urlopen(endpoint)
-    data = json.load(response)
-    file_list = [f['path'] for f in data['tree']]
-    file_path_list = ['https://raw.githubusercontent.com/'+username+'/'+repo+'/master/'+file_name for file_name in filter_files(file_list)]
-    return file_path_list
+    try:
+        response = urllib2.urlopen(endpoint)
+        data = json.load(response)
+        file_list = [f['path'] for f in data['tree']]
+        file_path_list = ['https://raw.githubusercontent.com/'+username+'/'+repo+'/master/'+file_name for file_name in filter_files(file_list)]
+        return file_path_list
+    except Exception as e:
+        return []
 
 
 def filter_files(files):
@@ -42,8 +45,8 @@ def get_user_file_list(username):
     user_file_list = []
     for repo in repos:
         user_file_list += get_files(repo=repo, username=username)
-
     return user_file_list
+
 
 if __name__ == '__main__':
     start = datetime.now()
