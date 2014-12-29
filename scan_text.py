@@ -32,23 +32,65 @@ def scan_text(text, band=15):
         candidates = [m.start() for m in re.finditer(i, text)]
         for candidate in candidates:
             span = text[candidate+len(i):candidate+band+len(i)]
-            print span
             if any(a in assignment_operators for a in span) and not any((c in chars) for c in span):
                 words = span.split(" ")
                 for w in words:
                     if len(w) > 10:
-                        print "*"*25
-                        print "\tCandidate:"
-                        print "\t", span
                         output.append(span)
-    return output
+    return dedupe(output)
 
 
 def detect_keys_in_file(file_batch):
-    candidates = []
+    repo_dict = {}
+    current_repo = file_batch[0].split('/')[3] + '/' + file_batch[0].split('/')[4]
+    repo_dict[current_repo] = {}
+
     for f in file_batch:
-        candidates.append(scan_text(text=get_file(file_path=f)))
-    return candidates
+        username = f.split('/')[3]
+        repo = f.split('/')[4]
+        r = username + '/' + repo
+
+        if 'repo_dict' not in repo_dict[r].keys():
+            repo_dict[r]['repo_keys'] = []
+
+        if r in repo_dict.keys():
+            candidates_in_file = scan_text(text=get_file(file_path=f))
+            repo_dict[r]['repo_keys'] += candidates_in_file
+            repo_dict[r][f] = candidates_in_file
+        else:
+            repo_dict[r]['repo_keys'] = dedupe(repo_dict[r]['repo_keys'])
+            repo_dict[r] = {}
+
+        # if r == current_repo:
+        #     candidate = scan_text(text=get_file(file_path=f))
+        #     current_repo_candidates += candidate
+        #     file_paths += f*len(candidate)
+        # else:
+        #     current_repo = r
+        #     current_repo_dict = {}
+
+        # candidate = scan_text(text=get_file(file_path=f)
+
+        # username = f.split('/')[3]
+        # repo = f.split('/')[4]
+        # candidate = scan_text(text=get_file(file_path=f)
+        # if repo in candidates.keys():
+        #     for c in candidate:
+        #         if c not in candidates[repo]
+        #         # candidates[repo] += 
+        #     candidates[repo].append(candidate))
+        # else:
+        #     candidates[repo] = candidate
+
+    return repo_dict
+
+
+def dedupe(seq):
+    # http://www.peterbe.com/plog/uniqifiers-benchmark
+    keys = {}
+    for e in seq:
+        keys[e] = 1
+    return keys.keys()
 
 
 if __name__ == '__main__':
