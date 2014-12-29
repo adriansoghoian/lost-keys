@@ -20,7 +20,8 @@ def get_files(repo, username, access_token=git_access_token):
     response = urllib2.urlopen(endpoint)
     data = json.load(response)
     file_list = [f['path'] for f in data['tree']]
-    return filter_files(file_list)
+    file_path_list = ['https://raw.githubusercontent.com/'+username+'/'+repo+'/master/'+file_name for file_name in filter_files(file_list)]
+    return file_path_list
 
 
 def filter_files(files):
@@ -28,24 +29,28 @@ def filter_files(files):
     for each in files:
         try:
             if not any(pattern.encode('utf-8') in str(each).encode('utf-8') for pattern in patterns):
-                output.append(each)
+                if '.' in each.split('/')[-1]:
+                    output.append(each)
         except UnicodeEncodeError:
             print "Error:\t", each
             continue
     return output
 
 
+def get_user_file_list(username):
+    repos = get_repos(username=username)
+    user_file_list = []
+    for repo in repos:
+        user_file_list += get_files(repo=repo, username=username)
+
+    return user_file_list
+
 if __name__ == '__main__':
     start = datetime.now()
     username = sys.argv[1]
 
-    repos = get_repos(username=username)
-    master_file = []
-    for repo in repos:
-        master_file += get_files(repo=repo, username=username)
+    user_file_list = get_user_file_list(username=username)
+    for f in user_file_list:
+        print f
 
-    print "*"*50
-    print master_file
-    print "*"*50
-    print len(master_file)
     print 'Task Completed:\t', datetime.now() - start
