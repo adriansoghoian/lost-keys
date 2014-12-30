@@ -22,10 +22,10 @@ def loop_over_github(since_index=0, num_calls=4999, results_directory="data/"):
 
 
 if __name__ == "__main__":
-	start = datetime.now()
-	try:
-		start_index = sys.argv[1]
-	except:
+    start = datetime.now()
+    try:
+        start_index = sys.argv[1]
+    except:
         start_index = 0
     loop_over_github(since_index=start_index)
-	print "Completed in: ", datetime.now() - start 
+    print "Completed in: ", datetime.now() - start
