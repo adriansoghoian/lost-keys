@@ -19,17 +19,19 @@ def main(list_of_users):
                 for i in range(num_threads):
                     t = Thread(target=threadable, args=(results, q))
                     t.setDaemon(True)
-                    print "Starting thread number: ", i
                     t.start()
-                q.join()
+                q.join() 
             for result in results:
                 keys = result.keys()
                 for key in keys: 
-                    r.write(key + "," + result[key] + "\n")
+                    try:
+                        r.write(key + "," + result[key] + "\n")
+                    except Exception as e:
+                        print e
     return results
 
 
-def threadable(results, q):
+def threadable(results, q): 
     while True:
         username = q.get()
         user_files = get_user_file_list(username)
