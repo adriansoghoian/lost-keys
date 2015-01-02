@@ -4,7 +4,7 @@ import os
 def return_files():
     current_directory = os.getcwd()
     files = os.listdir(current_directory + "/data")
-    files = [ "data/" + csv for csv in files if "user_list_" in csv ]
+    files = [ "data/" + csv for csv in files if "user_list_" in csv and "_results" not in csv ]
     return files
 
 
