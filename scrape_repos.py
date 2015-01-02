@@ -6,7 +6,7 @@ from secrets import git_access_token
 
 def get_repos(username, access_token=git_access_token):
     endpoint = "https://api.github.com/users/" + \
-        username + "/repos?access_token=" + access_token
+        username + "/repos?per_page=100&access_token=" + access_token
     response = urllib2.urlopen(endpoint)
     data = json.load(response)
     repo_list = [repo['name'] for repo in data]
