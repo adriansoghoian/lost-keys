@@ -16,6 +16,7 @@ def scan_text(text, band=15):
     Scans an individual file and returns key identifier
     (if found), else, nothing.
     """
+    tic = datetime.now()
     text = text.lower()
     identifiers = [
         "secret",
@@ -40,19 +41,25 @@ def scan_text(text, band=15):
                 for w in words:
                     if len(w) > 10:
                         output.append(span)
-    return dedupe(output)
+    toc = datetime.now()
+    return dedupe(output), (toc - tic).total_seconds()
 
 
 def detect_keys_in_file(file_batch):
+    tic = datetime.now()
     repo_dict = {}
+    scan_text_runtime = None
     for f in file_batch:
         repo_path = f.split('/')[3] + '/' + f.split('/')[4]
         if repo_path not in repo_dict.keys():
             repo_dict[repo_path] = []
-        candidates_in_file = scan_text(text=get_file(file_path=f))
+
+        candidates_in_file, scan_text_runtime = scan_text(text=get_file(file_path=f))
         candidates_in_file = [ {each: f} for each in candidates_in_file ]
+
         repo_dict[repo_path] += candidates_in_file
-    return dedupe_dict(repo_dict)
+    toc = datetime.now()
+    return dedupe_dict(repo_dict), (toc - tic).total_seconds(), scan_text_runtime
 
 
 def dedupe_dict(file_dict):

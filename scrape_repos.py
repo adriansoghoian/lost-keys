@@ -6,7 +6,7 @@ from secrets import git_access_token
 
 def get_repos(username, access_token=git_access_token):
     endpoint = "https://api.github.com/users/" + \
-        username + "/repos?access_token=" + access_token
+        username + "/repos?per_page=100&access_token=" + access_token
     response = urllib2.urlopen(endpoint)
     data = json.load(response)
     repo_list = [repo['name'] for repo in data]
@@ -41,11 +41,13 @@ def filter_files(files):
 
 
 def get_user_file_list(username):
+    tic = datetime.now()
     repos = get_repos(username=username)
     user_file_list = []
     for repo in repos:
         user_file_list += get_files(repo=repo, username=username)
-    return user_file_list
+    toc = datetime.now()
+    return user_file_list, (toc - tic).total_seconds()
 
 
 if __name__ == '__main__':
