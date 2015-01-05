@@ -20,10 +20,10 @@ def main(list_of_users):
                     t = Thread(target=threadable, args=(results, q))
                     t.setDaemon(True)
                     t.start()
-                q.join() 
+                q.join()
             for result in results:
                 keys = result.keys()
-                for key in keys: 
+                for key in keys:
                     try:
                         r.write(key + "," + result[key] + "\n")
                     except Exception as e:
@@ -31,7 +31,7 @@ def main(list_of_users):
     return results
 
 
-def threadable(results, q): 
+def threadable(results, q):
     while True:
         username = q.get()
         user_files = get_user_file_list(username)
@@ -43,4 +43,4 @@ if __name__ == "__main__":
     start = datetime.now()
     file_paths = ["data/user_list.csv"]
     main(file_paths)
-    print "Time took:", str(datetime.now() - start) 
+    print "Time took:", str(datetime.now() - start)

@@ -18,8 +18,7 @@ def combine_files(files):
                     f.write(line.split(",")[0].rstrip() + "\n")
 
 
-
 if __name__ == "__main__":
     files = return_files()
     print files
-    combine_files(files)
+    # combine_files(files)
