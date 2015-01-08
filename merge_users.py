@@ -21,4 +21,4 @@ def combine_files(files):
 if __name__ == "__main__":
     files = return_files()
     print files
-    # combine_files(files)
+    combine_files(files)
