@@ -36,7 +36,7 @@ def filter_files(files):
                 if '.' in each.split('/')[-1]:
                     output.append(each)
         except UnicodeEncodeError:
-            print "Error:\t", each
+            # print "Error:\t", each
             continue
     return output
 
