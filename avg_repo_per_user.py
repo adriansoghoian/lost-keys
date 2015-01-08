@@ -6,7 +6,7 @@ import random
 import numpy as np
 import datetime
 
-sampling_percentage = 0.00001
+sampling_percentage = 0.00048
 
 user_count = 0
 repos_count = 0
@@ -76,4 +76,3 @@ print "Avg Repo Size:\t", np.mean(repo_sizes), "\tStd:\t", np.std(repo_sizes), "
 print "Avg User Size:\t", np.mean(user_sizes), "\tStd:\t", np.std(user_sizes), "\tMedian:\t", np.median(user_sizes)
 
 print "Avg Number of Files per Repo:\t", np.mean(num_files_in_repo), "\tStd:\t", np.std(num_files_in_repo), "\tMedian:\t", np.median(num_files_in_repo)
-
