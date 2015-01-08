@@ -9,7 +9,13 @@ def get_repos(username, access_token=git_access_token):
         username + "/repos?access_token=" + access_token
     response = urllib2.urlopen(endpoint)
     data = json.load(response)
-    repo_list = [repo['name'] for repo in data]
+    repo_list = []
+    for repo in data:
+        if(repo['fork']==False):
+            repo_list.append(repo['name'])
+        else:
+            print 'Skipping forked repo'
+     #= [repo['name'] for repo in data]
     return repo_list
 
 
