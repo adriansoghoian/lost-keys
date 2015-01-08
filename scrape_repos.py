@@ -1,4 +1,4 @@
-import urllib2, json, sys
+import urllib2, json, sys, re
 from datetime import datetime
 from patterns.patterns import patterns
 from secrets import git_access_token
@@ -29,6 +29,7 @@ def get_files(repo, username, access_token=git_access_token):
 
 def filter_files(files):
     output = []
+    pattern_regex = re.compile(patterns.)
     for each in files:
         try:
             if not any(pattern.encode('utf-8') in str(each).encode('utf-8') for pattern in patterns):
