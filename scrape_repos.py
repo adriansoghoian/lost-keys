@@ -38,7 +38,7 @@ def filter_files(files):
     # pattern_regex = re.compile(patterns.)
     for each in files:
         try:
-            if not any(pattern.encode('utf-8') in str(each).encode('utf-8') for pattern in patterns):
+            if not any(pattern.encode('utf-8').lower() in str(each).encode('utf-8').lower() for pattern in patterns):
                 if '.' in each.split('/')[-1]:
                     output.append(each)
         except UnicodeEncodeError:
