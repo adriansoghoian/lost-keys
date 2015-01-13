@@ -1,4 +1,4 @@
-import urllib2, json, sys
+import urllib2, json, sys, re
 from datetime import datetime
 from patterns.patterns import patterns
 from secrets import git_access_token
@@ -9,7 +9,13 @@ def get_repos(username, access_token=git_access_token):
         username + "/repos?per_page=100&access_token=" + access_token
     response = urllib2.urlopen(endpoint)
     data = json.load(response)
-    repo_list = [repo['name'] for repo in data]
+    repo_list = []
+    for repo in data:
+        if(repo['fork']==False):
+            repo_list.append(repo['name'])
+        else:
+            print 'Skipping forked repo'
+     #= [repo['name'] for repo in data]
     return repo_list
 
 
@@ -29,13 +35,14 @@ def get_files(repo, username, access_token=git_access_token):
 
 def filter_files(files):
     output = []
+    # pattern_regex = re.compile(patterns.)
     for each in files:
         try:
-            if not any(pattern.encode('utf-8') in str(each).encode('utf-8') for pattern in patterns):
+            if not any(pattern.encode('utf-8').lower() in str(each).encode('utf-8').lower() for pattern in patterns):
                 if '.' in each.split('/')[-1]:
                     output.append(each)
         except UnicodeEncodeError:
-            print "Error:\t", each
+            # print "Error:\t", each
             continue
     return output
 
