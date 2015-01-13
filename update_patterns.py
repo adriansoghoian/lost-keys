@@ -5,8 +5,9 @@ def read_log(log_file):
     file_extensions = []
     with open(log_file, "rb") as log:
         for line in log.xreadlines():
-            file_path = line.split(" ")[2]
-            file_extensions.append(file_path.split(".")[-1])
+	    if line.split(" ")[2] != "Repo":
+                file_path = line.split(" ")[3]
+                file_extensions.append(file_path.split(".")[-1])
 
     return file_extensions
 
@@ -25,7 +26,7 @@ def main(log_file):
 
 
 if __name__ == "__main__":
-    patterns = read_log("avg_repo_per_user.py 2015-01-09 15:22:17.524553.log")
+    patterns = read_log("logs/avg_repo_per_user.py 2015-01-09 15:35:43.678890.log")
     dedupe = {}
     for each in patterns:
         dedupe[each] = 1
