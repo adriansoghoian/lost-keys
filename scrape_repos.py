@@ -1,6 +1,6 @@
 import urllib2, json, sys, re
 from datetime import datetime
-from patterns.patterns import patterns
+from patterns.patterns import file_paths_patterns,file_type_patterns,extensions_patterns
 from secrets import git_access_token
 
 
@@ -14,8 +14,8 @@ def get_repos(username, access_token=git_access_token):
         for repo in data:
             if(repo['fork']==False):
                 repo_list.append(repo['name'])
-            else:
-                print 'Skipping forked repo'
+            # else:
+            #     print 'Skipping forked repo'
     except:
         print "User: %s has no repos." % (username)
         repo_list = []
@@ -38,14 +38,15 @@ def get_files(repo, username, access_token=git_access_token):
 
 def filter_files(files):
     output = []
-    # pattern_regex = re.compile(patterns.)
     for each in files:
-        try:
-            if not any(pattern.encode('utf-8').lower() in str(each).encode('utf-8').lower() for pattern in patterns):
-                if '.' in each.split('/')[-1]:
-                    output.append(each)
+        try:  
+            if not any(file_type_pattern.encode('utf-8').lower() in str(each).encode('utf-8').lower() for file_type_pattern in file_type_patterns):
+               if not any(file_paths_pattern.encode('utf-8').lower() in str(each).encode('utf-8').lower() for file_paths_pattern in file_paths_patterns):
+                    extension = each.split('.')[-1]                    
+                    if not any((("." + extension) == extensions_pattern) for extensions_pattern in extensions_patterns): 
+                        output.append(each)
         except UnicodeEncodeError:
-            # print "Error:\t", each
+            #print "Error:\t", each
             continue
     return output
 

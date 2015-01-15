@@ -1,12 +1,13 @@
-def read_patterns():
-    pattern_files = ["patterns/file_paths.txt", "patterns/file_type.txt", "patterns/extensions.txt"]
+def read_patterns(file_path):
     patterns = []
 
-    for file_path in pattern_files:
-        with open(file_path, "rb") as f:
-            for line in f.xreadlines():
-                patterns.append(line.rstrip())
+    # for file_path in pattern_files:
+    with open(file_path, "rb") as f:
+        for line in f.xreadlines():
+            patterns.append(line.rstrip())
 
     return patterns
 
-patterns = read_patterns()
+file_paths_patterns = read_patterns("patterns/file_paths.txt")
+file_type_patterns = read_patterns("patterns/file_type.txt")
+extensions_patterns = read_patterns("patterns/extensions.txt")
