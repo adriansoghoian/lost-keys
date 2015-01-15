@@ -7,15 +7,18 @@ from secrets import git_access_token
 def get_repos(username, access_token=git_access_token):
     endpoint = "https://api.github.com/users/" + \
         username + "/repos?per_page=100&access_token=" + access_token
-    response = urllib2.urlopen(endpoint)
-    data = json.load(response)
-    repo_list = []
-    for repo in data:
-        if(repo['fork']==False):
-            repo_list.append(repo['name'])
-        else:
-            print 'Skipping forked repo'
-     #= [repo['name'] for repo in data]
+    try:
+        response = urllib2.urlopen(endpoint)
+        data = json.load(response)
+        repo_list = []
+        for repo in data:
+            if(repo['fork']==False):
+                repo_list.append(repo['name'])
+            else:
+                print 'Skipping forked repo'
+    except:
+        print "User: %s has no repos." % (username)
+        repo_list = []
     return repo_list
 
 

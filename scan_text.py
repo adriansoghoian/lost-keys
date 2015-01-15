@@ -21,13 +21,23 @@ def scan_text(text, band=15):
         "secret",
         'api',
         "key",
-        "token"
+        "token",
+        "oauth",
     ]
     assignment_operators = [
         '=',
-        ':'
+        ':',
+        '->'
     ]
-    chars = set(["\n", "<", ">", "/", "\\", "@", "(", ")", "[", "]", "{", "}", "."])
+    exclusion_substr = set([
+        "env",
+        "token",
+        "key",
+        "token",
+        "secret",
+        "config"
+    ])
+    chars = set(["\n", "<", ">", "/", "\\", "@", "(", ")", "[", "]", "{", "}", ".", ","])
 
     output = []
 
@@ -35,11 +45,13 @@ def scan_text(text, band=15):
         candidates = [m.start() for m in re.finditer(i, text)]
         for candidate in candidates:
             span = text[candidate+len(i):candidate+band+len(i)]
-            if any(a in assignment_operators for a in span) and not any((c in chars) for c in span):
-                words = span.split(" ")
-                for w in words:
-                    if len(w) > 10:
-                        output.append(span)
+            if any(a in assignment_operators for a in span):
+                if not any((c in chars) for c in span):
+                    if not any(substr in span for substr in exclusion_substr):
+                        words = span.split(" ")
+                        for w in words:
+                            if len(w) > 10:
+                                output.append(text[candidate-10:candidate+band+20])
     return dedupe(output)
 
 
@@ -58,7 +70,7 @@ def detect_keys_in_file(file_batch):
 def dedupe_dict(file_dict):
     output_dict = {}
     repos = file_dict.keys()
-    for repo in repos: 
+    for repo in repos:
         list_of_dicts = file_dict[repo]
         for d in list_of_dicts:
             for k, v in d.iteritems():

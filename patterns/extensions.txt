@@ -30,7 +30,6 @@
 .exe
 .o
 .so
-.py~
 .7z
 .dmg
 .gz
@@ -182,7 +181,6 @@
 .spec
 .embersync-localforage-example
 .i486
-.P
 .fal
 .scmt
 .little
@@ -197,7 +195,6 @@
 .list
 .dia
 .dic
-.p
 .TelerikAcademy
 .beneficiarios
 .pbm

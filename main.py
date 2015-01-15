@@ -41,6 +41,6 @@ def threadable(results, q):
 
 if __name__ == "__main__":
     start = datetime.now()
-    file_paths = ["data/user_list.csv"]
+    file_paths = ["data/test.csv"]
     main(file_paths)
     print "Time took:", str(datetime.now() - start)

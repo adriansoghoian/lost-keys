@@ -44,7 +44,6 @@ repo_count_list = []
 # plt.grid()
 # plt.show()
 
-
 file_sizes = []
 repo_sizes = []
 user_sizes = []
