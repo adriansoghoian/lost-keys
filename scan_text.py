@@ -11,7 +11,7 @@ def get_file(file_path):
         return ""
 
 
-def scan_text(text, band=15):
+def scan_text(text, band=25):
     """
     Scans an individual file and returns key identifier
     (if found), else, nothing.
@@ -47,7 +47,6 @@ def scan_text(text, band=15):
         "rdio",
         "bitly",
         "azure",
-        "box",
         "salesforce",
         "trello",
         "wordpress"
@@ -63,9 +62,10 @@ def scan_text(text, band=15):
         "key",
         "token",
         "secret",
-        "config"
+        "config",
+        "var"
     ])
-    chars = set(["\n", "<", ">", "/", "\\", "@", "(", ")", "[", "]", "{", "}", ".", ","])
+    chars = set(["\n", "<", ">", "/", "\\", "@", "[", "]", "{", "}", ".", ","])
 
     output = []
 
@@ -73,13 +73,14 @@ def scan_text(text, band=15):
         candidates = [m.start() for m in re.finditer(i, text)]
         for candidate in candidates:
             span = text[candidate+len(i):candidate+band+len(i)]
-            if any(a in assignment_operators for a in span):
+            if any(span.count(a) == 1 for a in assignment_operators):
+            # if any(a in assignment_operators for a in span) and span.count(a) == 1 for a in span:
                 if not any((c in chars) for c in span):
-                    if not any(substr in span for substr in exclusion_substr):
-                        words = span.split(" ")
-                        for w in words:
-                            if len(w) > 10:
-                                output.append(text[candidate-10:candidate+band+20])
+                    words = span.split(" ")
+                    for w in words:
+                        if len(w) > 10:
+                            if not any(substr in span for substr in exclusion_substr):
+                                output.append(text[candidate - 5:candidate + band])
     return dedupe(output)
 
 

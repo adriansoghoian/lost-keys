@@ -25,7 +25,8 @@ def main(list_of_users):
                 keys = result.keys()
                 for key in keys:
                     try:
-                        r.write(key + ",\t" + result[key] + "\n")
+                        r.write(key + "\n" + "\n")
+                        # r.write(key + ",\t" + result[key] + "\n")
                     except Exception as e:
                         print e
     return results
