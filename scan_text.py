@@ -254,10 +254,11 @@ def scan_text_violently(text):
                                 length = len(text[start:])
                                 if length > 200: length = 200
                                 if length < 20: continue
-                                span = text[start:start+length].split('\n')[0].replace(' ','')
-                                possible_keys.append(span)
+                                spans = filter(None, text[start:start+length].split('\n')[0].split(' '))
+                                for span in spans:
+                                    possible_keys.append(span)              
                 for key in possible_keys:
-                    if (not any(substr in key.lower() for substr in exclusion_substr) and any(c.isalpha() for c in key) and any(c.isdigit() for c in key)) and (not any(c in key for c in excl_chars) or any(wm in key.lower() for wm in watermarks)):
+                    if (200 > len(key) >= 20) and ((not any(substr in key.lower() for substr in exclusion_substr) and any(c.isalpha() for c in key) and any(c.isdigit() for c in key)) and (not any(c in key for c in excl_chars) or any(wm in key.lower() for wm in watermarks))):
                         output.append(key)
         return output
     except:
@@ -271,7 +272,7 @@ def detect_keys_in_file(file_batch):
         if repo_path not in repo_dict.keys():
             repo_dict[repo_path] = []
         #candidates_in_file = scan_text(text=get_file(file_path=f))
-        #candidates_in_file = scan_text_regex(text=get_file(file_path=f))                   
+        #candidates_in_file = scan_text_regex(text=get_file(file_path=f))
         candidates_in_file = scan_text_violently(text=get_file(file_path=f))
         
         # if (candidates_in_file!=[]):
