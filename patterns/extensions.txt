@@ -24,6 +24,7 @@
 .swp
 .un
 .*
+.p
 .com
 .class
 .dll

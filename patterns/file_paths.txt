@@ -1,6 +1,5 @@
 assets/
 vendor/
-test/
 lib/
 log/
 logs/

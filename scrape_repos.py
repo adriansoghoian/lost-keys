@@ -12,10 +12,8 @@ def get_repos(username, access_token=git_access_token):
         data = json.load(response)
         repo_list = []
         for repo in data:
-            if(repo['fork']==False):
+            if(repo['fork'] == False):
                 repo_list.append(repo['name'])
-            # else:
-            #     print 'Skipping forked repo'
     except:
         print "User: %s has no repos." % (username)
         repo_list = []
@@ -42,8 +40,8 @@ def filter_files(files):
         try:  
             if not any(file_type_pattern.encode('utf-8').lower() in str(each).encode('utf-8').lower() for file_type_pattern in file_type_patterns):
                if not any(file_paths_pattern.encode('utf-8').lower() in str(each).encode('utf-8').lower() for file_paths_pattern in file_paths_patterns):
-                    extension = each.split('.')[-1]                    
-                    if not any((("." + extension) == extensions_pattern) for extensions_pattern in extensions_patterns): 
+                    extension = "." + each.split('.')[-1].lower()                    
+                    if not any((extension == extensions_pattern.encode('utf-8').lower()) for extensions_pattern in extensions_patterns): 
                         output.append(each)
         except UnicodeEncodeError:
             #print "Error:\t", each
