@@ -12,7 +12,7 @@ def get_repos(username, access_token=git_access_token):
         data = json.load(response)
         repo_list = []
         for repo in data:
-            if(repo['fork'] == False):
+            if repo['fork'] == False and int(repo['updated_at'][:4]) > 2013:
                 repo_list.append(repo['name'])
     except:
         print "User: %s has no repos." % (username)
