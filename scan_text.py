@@ -38,7 +38,9 @@ identifiers = [
     "wordpress"
 ]
 
-watermarks = ["akia", "aiza", ".apps.googleusercontent.com"]
+front_watermarks = ["akia", "aiza"]
+
+end_watermarks = [".apps.googleusercontent.com"]
 
 assignment_operators = [
     "=>",
@@ -100,40 +102,66 @@ def scan_text_violently(text):
         if text.find("-----BEGIN RSA PRIVATE KEY-----") == 0 and text.find("-----END RSA PRIVATE KEY-----") > 450:
             output.append(text)
         else:
-            text = text.split("\n")
+            text = text.split("\n")            
             for t in text:
+                found = False
                 if 1000 > len(t) >= 20:
-                    for wm in watermarks:    
+                    for wm in end_watermarks:  
                         candidates = [m.start() for m in re.finditer(wm, t.lower())]
                         for candidate in candidates:
                             start = 0
                             for a in assignment_operators:
                                 tmp = t[:candidate].rfind(a[-1])
                                 if tmp > start: start = tmp
-                            start += 1                            
-                            length = min(len(t[start:]), 200)                         
-                            span = t[start:start + length].split(' ')[0]
-                            if is_key(span): output.append(t)
+                            start += 1
+                            span = t[start:candidate+len(wm)]
+                            if is_key(span): 
+                                output.append(t) 
+                                found = True
+                                break
+                        if found: break
+                    if found: continue
                     for i in identifiers:
                         candidates = [m.start() for m in re.finditer(i, t.lower())]
                         for candidate in candidates:
                             for a in assignment_operators:
-                                start = t[candidate:].find(a)
+                                start = t[candidate:].find(a)                                
                                 if start > -1: 
                                     space_location = t[candidate:].find(' ') 
                                     if space_location != -1 and space_location < start and any(c.isalnum() for c in t[candidate + space_location:candidate + start]): continue
                                     start += candidate + len(a)
                                     length = min(len(t[start:]), 200)
-                                    spans = filter(None, t[start:start + length].split(' '))
-                                    for span in spans:
-                                        if is_key(span): output.append(t)  
+                                    span = t[start:start + length].split(' ')[0]
+                                    if is_key(span): 
+                                        output.append(t) 
+                                        found = True
+                                        break
+                            if found: break
+                        if found: break
+                    if found: continue
+                    for wm in front_watermarks:  
+                        candidates = [m.start() for m in re.finditer(wm, t.lower())]
+                        for candidate in candidates:
+                            start = 0
+                            for a in assignment_operators:
+                                tmp = t[:candidate].rfind(a[-1])
+                                if tmp > start: start = tmp
+                            start += 1
+                            if any(c.isalnum() for c in t[start:candidate]): continue
+                            span = t[candidate:].split(' ')[0]
+                            if is_key(span): 
+                                output.append(t) 
+                                found = True
+                                break
+                        if found: break
+                    if found: continue
         return output
     except:
         return []
 
 
 def is_key(candidate):
-    return ((200 > len(candidate) >= 20) and ((not any(substr in candidate.lower() for substr in exclusion_substr) and any(c.isalpha() for c in candidate) and any(c.isdigit() for c in candidate)) and (not any(c in candidate for c in excl_chars) or any(wm in candidate.lower() for wm in watermarks))))
+    return ((200 > len(candidate) >= 20) and ((not any(substr in candidate.lower() for substr in exclusion_substr) and any(c.isalpha() for c in candidate) and any(c.isdigit() for c in candidate)) and (not any(c in candidate for c in excl_chars) or any(wm in candidate.lower() for wm in end_watermarks) or any(wm in candidate.lower() for wm in front_watermarks))))
 
 
 def detect_keys_in_file(file_batch):
