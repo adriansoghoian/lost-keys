@@ -98,7 +98,7 @@ def scan_text(text, band=25):
 def scan_text_violently(text):
     try:
         output = []
-        text = text.encode('utf-8')
+        text = text.decode('utf-8')
         if text.find("-----BEGIN RSA PRIVATE KEY-----") == 0 and text.find("-----END RSA PRIVATE KEY-----") > 450:
             output.append(text)
         else:
@@ -133,7 +133,6 @@ def scan_text_violently(text):
                                     if slash_location != -1 and slash_location < start: continue
                                     start += candidate + len(a)
                                     length = min(len(t[start:]), 200)
-                                     
                                     span = t[start:start + length]
                                     front_bracket_location = span.find('(')
                                     back_bracket_location = span.find(')')
@@ -219,5 +218,5 @@ if __name__ == '__main__':
 
     print 'Task Completed:\t', datetime.now() - start
 
-    #print scan_text_violently("        AmazonEC2 amazonEC2 = getAmazonEC2(credDto, regionId);\n")
-    #print scan_text_violently("    c.Assert(resp.AccessKey.Id, Equals, \"AKIAIOSFODNN7EXAMPLE\")\n")
+    # print scan_text_violently("        //String accessKey = \"AKIAIA7HTUW2JJUSU3GQ\"; Mike's\n")
+    # print scan_text_violently("\n\"ieOnly\":true,\n\"accessKey\":\"AKIAIA7HTUW2JJUSU3GQ\",\n\"secretKey\":\"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\",\n")
