@@ -6,6 +6,7 @@ from scan_text import detect_keys_in_file
 from threading import Thread
 from Queue import Queue
 
+    
 
 def get_recent_repos(interested_days=180):
     current_date = datetime.now()
@@ -19,7 +20,7 @@ def get_recent_repos(interested_days=180):
             count += 1
             if count >= start:
                 username = line.split(",")[0].rstrip()    
-                endpoint = "https://api.github.com/users/" + username + "/repos?per_page=100&access_token=" + git_access_token
+                endpoint = "https://api.github.com/users/" + username + "/repos?per_page=100&access_token=" + git_access_token[0]
                 try:
                     response = urllib2.urlopen(endpoint)
                     data = json.load(response)
@@ -31,6 +32,29 @@ def get_recent_repos(interested_days=180):
                 except Exception as e:
                     print e
                     #print "User: %s has no repos." % (username)
+
+
+def get_batch_repos(since_index=0, num_calls=4999, results_directory="data/"):
+    git_token_index = 0
+    num_called = 0
+    last_index = 30052000
+    with open(results_directory + "repo_list_" + str(since_index) + ".csv", 'wb') as f:
+        while(since_index <= last_index):
+            if(num_called < num_calls):
+                endpoint = "https://api.github.com/repositories?since=" + str(since_index) + "?per_page=100&access_token=" + git_access_token[git_token_index]
+                response = urllib2.urlopen(endpoint)
+                repos = json.load(response)
+                for repo in repos:
+                    f.write(repo['full_name'] + "," + str(repo['id']) + "\n") 
+
+                since_index = repos[-1]['id']
+                num_calls += 1
+            else:
+                num_calls = 0 
+                git_token_index = (git_token_index + 1) % 2
+
+    print "Last index: ", since_index
+
 
 
 '''
@@ -48,13 +72,19 @@ def merge_repo_files(interested_days):
 
 
 def get_keys(lists_of_repos):
+    git_token_index = 0
+    num_calls = 0
     for list_of_repos in lists_of_repos:
         start = datetime.now()
         with open(list_of_repos.split(".")[0] + "_results.csv", "wb") as r:
             with open(list_of_repos, "rb") as f:
                 for line in f.xreadlines():
                     username, repo = line.rstrip().split('/')
-                    user_files = get_files(repo, username)
+                    user_files = get_files(repo, username, git_access_token[git_token_index])
+                    num_calls += 1
+                    if (num_calls >= 5000):
+                        num_calls = 0 
+                        git_token_index = (git_token_index + 1) % 2
                     result = detect_keys_in_file(user_files)
                     keys = result.keys()
                     for key in keys:
@@ -107,9 +137,8 @@ def threadable(results, q):
 if __name__ == "__main__":
     # interested_days = 180
     # if len(sys.argv) == 2: interested_days = sys.argv[1]
-    get_recent_repos()
 
-
+    get_batch_repos(23871889)
     #start = datetime.now()
     # in_files = os.listdir(os.getcwd()+"/data") 
     # file_paths = ["data/repo_list_180_days_2015-01-22 20:14:11.237553.csv"] #["data/" + csv for csv in in_files if "data/github_repo_list_"+str(interested_days)+"_days_" in csv]

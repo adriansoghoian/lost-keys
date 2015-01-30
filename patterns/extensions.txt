@@ -18,7 +18,6 @@
 .ttf
 .svg
 .pyc
-.csv
 .xml
 .pid
 .swp

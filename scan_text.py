@@ -1,6 +1,5 @@
 import urllib2, json, sys, re
 from datetime import datetime
-from secrets import git_access_token
 
 identifiers = [
     "secret",
@@ -45,6 +44,7 @@ end_watermarks = [".apps.googleusercontent.com"]
 assignment_operators = [
     "=>",
     ": ",
+    "\":\"",
     "= ",
     '='        
 ]
@@ -61,7 +61,7 @@ exclusion_substr = set([
     "oauth"
 ])
 
-excl_chars = set(["<", ">", "/", "\\", "[", "]", "{", "}", "?", ",", "::", "_", "|", "."])
+excl_chars = set(["<", ">", "\\", "[", "]", "{", "}", "?", "::", "_", "|", "."])
 
 
 def get_file(file_path):
@@ -125,13 +125,20 @@ def scan_text_violently(text):
                         candidates = [m.start() for m in re.finditer(i, t.lower())]
                         for candidate in candidates:
                             for a in assignment_operators:
-                                start = t[candidate:].find(a)                                
+                                start = t[candidate:].find(a)
                                 if start > -1: 
                                     space_location = t[candidate:].find(' ') 
                                     if space_location != -1 and space_location < start and any(c.isalnum() for c in t[candidate + space_location:candidate + start]): continue
+                                    slash_location = t[candidate:].find('/')
+                                    if slash_location != -1 and slash_location < start: continue
                                     start += candidate + len(a)
                                     length = min(len(t[start:]), 200)
-                                    span = t[start:start + length].split(' ')[0]
+                                     
+                                    span = t[start:start + length]
+                                    front_bracket_location = span.find('(')
+                                    back_bracket_location = span.find(')')
+                                    if front_bracket_location != -1 and back_bracket_location != -1 and front_bracket_location < back_bracket_location and span[front_bracket:back_bracket].find(',') != 1: continue
+                                    span = span.split(' ')[0]
                                     if is_key(span): 
                                         output.append(t) 
                                         found = True
@@ -205,8 +212,12 @@ if __name__ == '__main__':
 "https://raw.githubusercontent.com/adriansoghoian/DevPolls/master/models/question.rb",
 "https://raw.githubusercontent.com/adriansoghoian/Discoveree/master/discoveree/.env"
     ]
+
     start = datetime.now()
 
     print detect_keys_in_file(TEST)
 
     print 'Task Completed:\t', datetime.now() - start
+
+    #print scan_text_violently("        AmazonEC2 amazonEC2 = getAmazonEC2(credDto, regionId);\n")
+    #print scan_text_violently("    c.Assert(resp.AccessKey.Id, Equals, \"AKIAIOSFODNN7EXAMPLE\")\n")

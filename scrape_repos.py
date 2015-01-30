@@ -4,7 +4,7 @@ from patterns.patterns import file_paths_patterns,file_type_patterns,extensions_
 from secrets import git_access_token
 
 
-def get_repos(username, access_token=git_access_token):
+def get_repos(username, access_token=git_access_token[0]):
     endpoint = "https://api.github.com/users/" + \
         username + "/repos?per_page=100&access_token=" + access_token
     try:
@@ -12,23 +12,32 @@ def get_repos(username, access_token=git_access_token):
         data = json.load(response)
         repo_list = []
         for repo in data:
-            if repo['fork'] == False and int(repo['updated_at'][:4]) > 2014:
-                repo_list.append(repo['name'])
+            #if repo['fork'] == False:# and int(repo['updated_at'][:4]) > 2013:
+            repo_list.append(repo['name'])
     except:
         print "User: %s has no repos." % (username)
         repo_list = []
     return repo_list
 
 
-def get_files(repo, username, access_token=git_access_token):
-    endpoint = "https://api.github.com/repos/" + \
-        username + "/" + repo + "/git/trees/master?recursive=1&access_token="\
-        + access_token
+def get_branches(repo, username, access_token=git_access_token[0]):
+    endpoint = "https://api.github.com/repos/" + username + "/" + repo + "/branches?access_token=" + access_token
+    try:
+        response = urllib2.urlopen(endpoint)
+        data = json.load(response)
+        branch_list = [branch['name'] for branch in data]
+        return branch_list
+    except Exception as e:
+        return []
+
+
+def get_files(branch, repo, username, access_token=git_access_token[0]):
+    endpoint = "https://api.github.com/repos/" + username + "/" + repo + "/git/trees/" + branch + "?recursive=1&access_token=" + access_token
     try:
         response = urllib2.urlopen(endpoint)
         data = json.load(response)
         file_list = [f['path'] for f in data['tree']]
-        file_path_list = ['https://raw.githubusercontent.com/'+username+'/'+repo+'/master/'+file_name for file_name in filter_files(file_list)]
+        file_path_list = ['https://raw.githubusercontent.com/'+username+'/'+repo+'/'+branch+'/'+file_name for file_name in filter_files(file_list)]
         return file_path_list
     except Exception as e:
         return []
@@ -53,7 +62,9 @@ def get_user_file_list(username):
     repos = get_repos(username=username)
     user_file_list = []
     for repo in repos:
-        user_file_list += get_files(repo=repo, username=username)
+        branches = get_branches(repo=repo, username=username)
+        for branch in branches:
+            user_file_list += get_files(branch=branch, repo=repo, username=username)
     return user_file_list
 
 
