@@ -68,6 +68,14 @@ def get_user_file_list(username):
     return user_file_list
 
 
+def get_repo_file_list(username, repo):
+    file_list = []
+    branches = get_branches(repo=repo, username=username)
+    for branch in branches:
+        file_list += get_files(branch=branch, repo=repo, username=username)
+    return file_list
+
+
 if __name__ == '__main__':
     start = datetime.now()
     username = sys.argv[1]
