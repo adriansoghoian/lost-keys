@@ -50,12 +50,13 @@ def generate_sample_user_list():
 
 
 def main(repo_list_files):
-    """Uses the repo list need to consolidate
+    """
+    Uses the repo list need to consolidate
     """
     q = Queue(maxsize=0)
     num_threads = 10
 
-    stop = 10000
+    stop = 500
     c = 0
 
     for repo_list in repo_list_files:
@@ -67,7 +68,6 @@ def main(repo_list_files):
                     username = line.split(',')[0].split('/')[0].rstrip()
                     repo = line.split(',')[0].split('/')[1].rstrip()
                     q.put((username, repo))
-                    # num_threads += 1
                     print c, '\t', username, '\t', repo
                     if c > stop:
                         break
@@ -76,13 +76,10 @@ def main(repo_list_files):
                     t.setDaemon(True)
                     t.start()
                 q.join()
-
-
             for result in results:
                 keys = result.keys()
                 for key in keys:
                     try:
-                        #r.write(key + "\n" + "\n")
                         r.write(key + "\n" + result[key] + "\n\n")
                     except Exception as e:
                         print e
@@ -95,11 +92,8 @@ def threadable(results, q):
         username = params[0]
         repo = params[1]
         # files = get_user_file_list(username)
-
         files = get_repo_file_list(username, repo)
-
         results.append(detect_keys_in_file(files))
-
         q.task_done()
 
 
