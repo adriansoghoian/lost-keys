@@ -65,7 +65,8 @@ def get_user_file_list(username):
     repos = get_repos(username=username)
     user_file_list = []
     for repo in repos:
-        branches = get_branches(repo=repo, username=username)
+        # branches = get_branches(repo=repo, username=username)
+        branches = ['master']
         for branch in branches:
             user_file_list += get_files(
                 branch=branch, repo=repo, username=username)

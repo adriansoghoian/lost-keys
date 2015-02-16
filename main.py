@@ -26,7 +26,7 @@ def main(repo_list_files):
     q = Queue(maxsize=0)
     num_threads = 10
 
-    stop = 2
+    stop = 5
     c = 0
 
     for repo_list in repo_list_files:
@@ -71,6 +71,6 @@ def threadable(results, q):
 
 if __name__ == "__main__":
     start = datetime.now()
-    file_paths = ["repos/repo_list_22489472.csv"]
+    file_paths = ["repos/repo_list_23100687.csv"]
     main(file_paths)
     print "Time took:", str(datetime.now() - start)

@@ -117,7 +117,7 @@ def scan_text_violently(text):
                                 if tmp > start: start = tmp
                             start += 1
                             span = t[start:candidate+len(wm)]
-                            if is_key(span): 
+                            if is_key(span):
                                 output.append(t)
                                 found = True
                                 break
@@ -138,7 +138,7 @@ def scan_text_violently(text):
                                     span = t[start:start + length]
                                     front_bracket_location = span.find('(')
                                     back_bracket_location = span.find(')')
-                                    if front_bracket_location != -1 and back_bracket_location != -1 and front_bracket_location < back_bracket_location and span[front_bracket:back_bracket].find(',') != 1: continue
+                                    if front_bracket_location != -1 and back_bracket_location != -1 and front_bracket_location < back_bracket_location and span[front_bracket_location:back_bracket_location].find(',') == 1: continue
                                     span = span.split(' ')[0]
                                     if is_key(span):
                                         output.append(t)
@@ -182,7 +182,7 @@ def detect_keys_in_file(file_batch):
         candidates_in_file = scan_text_violently(text=get_file(file_path=f))
         candidates_in_file = [{each: f} for each in candidates_in_file]
 
-        print candidates_in_file
+        # print candidates_in_file
 
         repo_dict[repo_path] += candidates_in_file
 
