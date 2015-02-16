@@ -1,7 +1,7 @@
 import urllib2, json, sys, re, os
 from datetime import datetime, timedelta
 from secrets import git_access_token
-from scrape_repos import get_files
+from scrape_repos import get_repo_file_list
 from scan_text import detect_keys_in_file
 from threading import Thread
 from Queue import Queue
@@ -79,18 +79,17 @@ def get_keys(lists_of_repos):
         with open(list_of_repos.split(".")[0] + "_results.csv", "wb") as r:
             with open(list_of_repos, "rb") as f:
                 for line in f.xreadlines():
-                    username, repo = line.rstrip().split('/')
-                    user_files = get_files(repo, username, git_access_token[git_token_index])
+                    username, repo = line.rstrip().split(',')[0].split('/')
+                    user_files = get_repo_file_list(username, repo, git_access_token[git_token_index])
                     num_calls += 1
                     if (num_calls >= 5000):
                         num_calls = 0 
-                        git_token_index = (git_token_index + 1) % 2
+                        git_token_index = (git_token_index + 1) % len(git_access_token)
                     result = detect_keys_in_file(user_files)
                     keys = result.keys()
                     for key in keys:
                         try:
                             print 'found key\t', key
-                            #r.write(key + "\n" + "\n")
                             r.write(key + "\n" + result[key] + "\n\n")
                         except Exception as e:
                             print e
@@ -139,10 +138,10 @@ if __name__ == "__main__":
     # interested_days = 180
     # if len(sys.argv) == 2: interested_days = sys.argv[1]
 
-    get_batch_repos(23871889)
+   # get_batch_repos(28297912)
     #start = datetime.now()
-    # in_files = os.listdir(os.getcwd()+"/data") 
-    # file_paths = ["data/repo_list_180_days_2015-01-22 20:14:11.237553.csv"] #["data/" + csv for csv in in_files if "data/github_repo_list_"+str(interested_days)+"_days_" in csv]
-    # get_keys(file_paths)
+    in_files = os.listdir(os.getcwd()+"/repos") 
+    file_paths = ["repos/repo_list_123.csv"] #["data/" + csv for csv in in_files if "data/github_repo_list_"+str(interested_days)+"_days_" in csv]
+    get_keys(file_paths)
     #print "Time took:", str(datetime.now() - start)
     
