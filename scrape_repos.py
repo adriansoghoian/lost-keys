@@ -73,20 +73,21 @@ def get_user_file_list(username):
     return user_file_list
 
 
-def get_repo_file_list(username, repo):
+def get_repo_file_list(username, repo, access_token=git_access_token[0]):
     file_list = []
-    branches = get_branches(repo=repo, username=username)
+    branches = get_branches(repo=repo, username=username, access_token=access_token)
     for branch in branches:
-        file_list += get_files(branch=branch, repo=repo, username=username)
+        #print branch
+        file_list += get_files(branch=branch, repo=repo, username=username, access_token=access_token)
     return file_list
 
 
 if __name__ == '__main__':
     start = datetime.now()
-    username = sys.argv[1]
+    #username = sys.argv[1]
 
-    user_file_list = get_user_file_list(username=username)
-    for f in user_file_list:
-        print f
+    user_file_list = get_repo_file_list("avatch","keycommit")
+    # for f in user_file_list:
+    #     print f
 
     print 'Task Completed:\t', datetime.now() - start

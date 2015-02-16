@@ -2,8 +2,10 @@ from scrape_repos import get_repo_file_list
 from scan_text import detect_keys_in_file
 from datetime import datetime
 from threading import Thread
+from multiprocessing import Pool
 from Queue import Queue
 import random
+
 
 
 def generate_sample_user_list():
