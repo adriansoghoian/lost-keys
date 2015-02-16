@@ -2,8 +2,10 @@ from scrape_repos import get_user_file_list, get_repo_file_list
 from scan_text import detect_keys_in_file
 from datetime import datetime
 from threading import Thread
+from multiprocessing import Pool
 from Queue import Queue
 import random
+
 
 
 def generate_sample_user_list():
@@ -99,8 +101,11 @@ def threadable(results, q):
 
 if __name__ == "__main__":
     start = datetime.now()
-    # file_paths = ["data/test.csv"]#[generate_sample_user_list()]#
-    file_paths = ["repos/repo_list_22489472.csv"]
+    file_paths1 = ["repos/repo_list_22489472.csv"]
+    file_paths2 = ["repos/repo_list_23100687.csv"]
+    args = file_paths1 + file_paths2
 
-    main(file_paths)
+    p1 = Pool(processes=4)
+    p1.map(main, args)
+    # main(file_paths)
     print "Time took:", str(datetime.now() - start)

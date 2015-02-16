@@ -6,7 +6,7 @@ import urllib2, json, time
 import traceback, sys
 
 
-def monitor_events(cap=1000, type="PushEvent"):
+def monitor_events(cap=5000, type="PushEvent"):
     """
     This monitors GitHub's /events stream, looking for a capped number of events of certain type.
     """
@@ -45,7 +45,7 @@ def monitor_events(cap=1000, type="PushEvent"):
             keys = result.keys()
             for key in keys:
                 try:
-                    f.write(key + "\n" + result[key] + "\n\n")
+                    f.write(key + ", " + result[key] + "\n")
                 except Exception as e:
                     print e
     return True
@@ -57,6 +57,7 @@ def pulldown_events(access_token, amount_per_page=100):
     """
     endpoint = "https://api.github.com/events?per_page=" + str(amount_per_page) + "&access_token=" + access_token
     response = urllib2.urlopen(endpoint)
+
     return json.load(response)
 
 
@@ -75,6 +76,7 @@ def scrape_event(event_json, access_token):
                 raw_urls.append(each['raw_url'])
         except Exception as e:
             print e
+
     return filter_files(raw_urls)
 
 
