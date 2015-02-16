@@ -6,7 +6,6 @@ from scan_text import detect_keys_in_file
 from threading import Thread
 from Queue import Queue
 
-    
 
 def get_recent_repos(interested_days=180):
     current_date = datetime.now()
@@ -31,7 +30,7 @@ def get_recent_repos(interested_days=180):
                             r.write(repo['full_name'] + "\n")
                 except Exception as e:
                     print e
-                    #print "User: %s has no repos." % (username)
+                    print "User: %s has no repos." % (username)
 
 
 def get_batch_repos(since_index=0, num_calls=4999, results_directory="data/"):
@@ -72,6 +71,7 @@ def merge_repo_files(interested_days):
 
 
 def get_keys(lists_of_repos):
+    print "Getting Keys"
     git_token_index = 0
     num_calls = 0
     for list_of_repos in lists_of_repos:
@@ -89,6 +89,7 @@ def get_keys(lists_of_repos):
                     keys = result.keys()
                     for key in keys:
                         try:
+                            print 'found key\t', key
                             #r.write(key + "\n" + "\n")
                             r.write(key + "\n" + result[key] + "\n\n")
                         except Exception as e:

@@ -8,7 +8,8 @@ import traceback, sys
 
 def monitor_events(cap=1000, type="PushEvent"):
     """
-    This monitors GitHub's /events stream, looking for a capped number of events of certain type.
+    This monitors GitHub's /events stream,
+    looking for a capped number of events of certain type.
     """
     access_token_index = 0
     start = datetime.now()
@@ -41,6 +42,7 @@ def monitor_events(cap=1000, type="PushEvent"):
                 access_token_index = (1 + access_token_index) % 2
                 traceback.print_exc(file=sys.stdout)
                 print e
+
         for result in results:
             keys = result.keys()
             for key in keys:

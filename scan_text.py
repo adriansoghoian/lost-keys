@@ -47,7 +47,7 @@ assignment_operators = [
     ": ",
     "\":\"",
     "= ",
-    '='        
+    '='
 ]
 
 exclusion_substr = set([
@@ -69,7 +69,8 @@ def get_file(file_path):
     try:
         response = urllib2.urlopen(file_path).read()
         return response
-    except:
+    except Exception as e:
+        print e, '\t', file_path
         return ""
 
 
@@ -103,11 +104,11 @@ def scan_text_violently(text):
         if text.find("-----BEGIN RSA PRIVATE KEY-----") == 0 and text.find("-----END RSA PRIVATE KEY-----") > 450:
             output.append(text)
         else:
-            text = text.split("\n")            
+            text = text.split("\n")
             for t in text:
                 found = False
                 if 1000 > len(t) >= 20:
-                    for wm in end_watermarks:  
+                    for wm in end_watermarks:
                         candidates = [m.start() for m in re.finditer(wm, t.lower())]
                         for candidate in candidates:
                             start = 0
@@ -117,7 +118,7 @@ def scan_text_violently(text):
                             start += 1
                             span = t[start:candidate+len(wm)]
                             if is_key(span): 
-                                output.append(t) 
+                                output.append(t)
                                 found = True
                                 break
                         if found: break
@@ -139,8 +140,8 @@ def scan_text_violently(text):
                                     back_bracket_location = span.find(')')
                                     if front_bracket_location != -1 and back_bracket_location != -1 and front_bracket_location < back_bracket_location and span[front_bracket:back_bracket].find(',') != 1: continue
                                     span = span.split(' ')[0]
-                                    if is_key(span): 
-                                        output.append(t) 
+                                    if is_key(span):
+                                        output.append(t)
                                         found = True
                                         break
                             if found: break
@@ -177,14 +178,14 @@ def detect_keys_in_file(file_batch):
         repo_path = f.split('/')[3] + '/' + f.split('/')[4]
         if repo_path not in repo_dict.keys():
             repo_dict[repo_path] = []
-        #candidates_in_file = scan_text(text=get_file(file_path=f))
-        candidates_in_file = scan_text_violently(text=get_file(file_path=f))
-        
-        # if (candidates_in_file!=[]):
-        #     print candidates_in_file,"\n",f,"\n\n"
 
-        candidates_in_file = [ {each: f} for each in candidates_in_file ]
+        candidates_in_file = scan_text_violently(text=get_file(file_path=f))
+        candidates_in_file = [{each: f} for each in candidates_in_file]
+
+        print candidates_in_file
+
         repo_dict[repo_path] += candidates_in_file
+
     return dedupe_dict(repo_dict)
 
 
@@ -208,16 +209,4 @@ def dedupe(seq):
 
 
 if __name__ == '__main__':
-    TEST = [
-"https://raw.githubusercontent.com/adriansoghoian/DevPolls/master/models/question.rb",
-"https://raw.githubusercontent.com/adriansoghoian/Discoveree/master/discoveree/.env"
-    ]
-
     start = datetime.now()
-
-    print detect_keys_in_file(TEST)
-
-    print 'Task Completed:\t', datetime.now() - start
-
-    # print scan_text_violently("        //String accessKey = \"AKIAIA7HTUW2JJUSU3GQ\"; Mike's\n")
-    # print scan_text_violently("\n\"ieOnly\":true,\n\"accessKey\":\"AKIAIA7HTUW2JJUSU3GQ\",\n\"secretKey\":\"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\",\n")
