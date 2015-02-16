@@ -138,7 +138,7 @@ def scan_text_violently(text):
                                     span = t[start:start + length]
                                     front_bracket_location = span.find('(')
                                     back_bracket_location = span.find(')')
-                                    if front_bracket_location != -1 and back_bracket_location != -1 and front_bracket_location < back_bracket_location and span[front_bracket_location:back_bracket_location].find(',') == 1: continue
+                                    if front_bracket_location != -1 and back_bracket_location != -1 and front_bracket_location < back_bracket_location and span[front_bracket_location:back_bracket_location].find(',') > -1: continue
                                     span = span.split(' ')[0]
                                     if is_key(span):
                                         output.append(t)
