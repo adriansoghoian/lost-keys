@@ -16,7 +16,7 @@ class Monitor(object):
         self.num_repos = 0 ## TODO
         self.num_key_rotations = 0
         self.num_events = 0 ## TODO
-        self.num_threads = 10 
+        self.num_threads = num_threads
         self.num_key_candidates = 0
         self.key_candidates = []
         self.url_tasks = Queue(maxsize=0)
@@ -39,7 +39,6 @@ class Monitor(object):
         Raw urls are managed by a Queue, from which "url tasks" are popped off and processed by 
         the threadable_url_consumer method. 
         """
-        results = []
         event_retriever = Thread(target=self.threadable_retrieve_event_urls, args=())
         event_retriever.setDaemon(True)
         event_retriever.start()
