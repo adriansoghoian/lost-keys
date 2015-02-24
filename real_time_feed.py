@@ -11,22 +11,24 @@ import traceback, sys
 
 class Monitor(object):
 
-    def __init__(self, monitor_duration, num_threads=10):
+    def __init__(self, monitor_duration, num_threads=10, debug=True):
         self.monitor_duration = monitor_duration # duration in minutes
-        self.num_repos = 0 ## TODO
+        self.debug = debug
+        self.num_repos = 0
         self.num_key_rotations = 0
-        self.num_events = 0 ## TODO
+        self.num_events = 0
         self.num_threads = num_threads
         self.num_key_candidates = 0
         self.key_candidates = []
         self.url_tasks = Queue(maxsize=0)
-        self.first_event_id = 0 ## TODO
-        self.last_event_id = 0 ## TODO
+        self.first_event_id = None
+        self.last_event_id = None
         self.access_token_index = 0
         self.keep_querying = True
         self.keep_scraping = True
         self.start_time = datetime.now()
         self.end_time = self.start_time + timedelta(minutes=self.monitor_duration)
+        self.runtime = None
         self.results_file_path = "repos/realtime_feed_" + str(self.start_time) + ".csv"
 
 
@@ -56,21 +58,7 @@ class Monitor(object):
 
         self.url_tasks.join()
         self.write_results()
-
-
-    def write_results(self):
-        """
-        Writes the results to a .csv once everything has been processed. 
-        Writes a file in "/repos" in the form defined by self.result_file_path.
-        """
-        with open(self.results_file_path, "wb") as f:
-            for result in self.key_candidates:
-                keys = result.keys()
-                for key in keys:
-                    try: 
-                        f.write(result[key] + "\t" + key + "\n")
-                    except Exception as e:
-                        print e
+        self.runtime = (datetime.now() - self.start_time()).total_seconds()/60
 
 
     def threadable_url_consumer(self):
@@ -83,7 +71,7 @@ class Monitor(object):
             candidates_in_url = scan_text_violently(text=get_file(file_path=url))
             candidates_in_url = [ {each: url} for each in candidates_in_url ]
 
-            if len(candidates_in_url) > 0: print candidates_in_url
+            if self.debug and len(candidates_in_url) > 0: print "Key candidates: ", candidates_in_url
             self.key_candidates += candidates_in_url
             self.url_tasks.task_done()
 
@@ -93,9 +81,11 @@ class Monitor(object):
         A single process will constantly monitor the Github event stream 
         """
         while self.keep_querying:
-            new_events = self.retrieve_events()  
+            new_events = self.retrieve_events()
+            if not self.first_event_id: self.first_event_id = new_events[-1]['id'] 
             self.convert_events_to_urls(new_events)
 
+        self.last_event_id = new_events[0]['id']
 
     def convert_events_to_urls(self, new_events):
         """
@@ -103,20 +93,26 @@ class Monitor(object):
         raw_urls, and adds them to the Queue for threaded processing.  
         """
         for i, event in enumerate(new_events):
+            self.num_events += 1
             urls = []
-            if event['type'] != "PushEvent": continue
-            for commit in event['payload']['commits']:
-                try:
-                    response = urllib2.urlopen(commit['url'] + "?access_token=" + git_access_token[self.access_token_index])
-                    data = json.load(response)
-                    for each_file in data['files']:
-                        if "." in each_file['raw_url'].split("/")[-1]:
-                            urls.append(each_file['raw_url'])
-                    urls = filter_files(urls)
-                    map(self.url_tasks.put, urls)
-                except Exception as e:
-                    self.rotate_access_token()
-                    self.num_key_rotations += 1 
+            if event['type'] == "PushEvent": 
+                if self.debug: print "Scanning push event: ", i
+                self.num_repos += 1
+                for commit in event['payload']['commits']:
+                    try:
+                        response = urllib2.urlopen(commit['url'] + "?access_token=" + git_access_token[self.access_token_index])
+                        data = json.load(response)
+                        for each_file in data['files']:
+                            if "." in each_file['raw_url'].split("/")[-1]:
+                                urls.append(each_file['raw_url'])
+                        urls = filter_files(urls)
+                        if self.debug: "Printing these urls: ", urls 
+                        map(self.url_tasks.put, urls)
+                    except Exception as e:
+                        self.rotate_access_token()
+                        self.num_key_rotations += 1
+            else:
+                continue
 
 
     def retrieve_events(self, per_page=100):
@@ -147,89 +143,54 @@ class Monitor(object):
         self.access_token_index = (self.access_token_index + 1) % len(git_access_token)
 
 
-# def monitor_events(cap=500, type="PushEvent"):
-#     """
-#     This monitors GitHub's /events stream,
-#     looking for a capped number of events of certain type.
-#     """
-#     access_token_index = 0
-#     start = datetime.now()
-#     results_file_path = "repos/realtime_feed_" + str(start) + ".csv"
-#     count = 0
-#     last_checked_event_id = 2565764483 # This is just an arbitrary value I grabbed to initialize this.
-#     results = []
-
-#     with open(results_file_path, "wb") as f:
-#         while True:
-#             if count > cap: break
-#             try:
-#                 data = pulldown_events(git_access_token[access_token_index])
-#                 while int(data[-1]['id']) < last_checked_event_id:
-#                     time.sleep(10)
-#                     data = pulldown_events(git_access_token[access_token_index])
-#                 last_checked_event_id = int(data[0]['id'])
-#                 for i, event in enumerate(data):
-#                     if event['type'] == "PushEvent": 
-#                         count += 1
-#                         raw_urls = scrape_event(event, git_access_token[access_token_index])
-#                         for url in raw_urls:
-#                             candidates_in_file = scan_text_violently(text=get_file(file_path=url))   
-#                             candidates_in_file = [ {each: url} for each in candidates_in_file ]
-#                             if len(candidates_in_file) > 0: print candidates_in_file   
-#                             results += candidates_in_file
-#                         if count > cap: break
-#                     else:
-#                         continue
-#             except Exception as e:
-#                 access_token_index = (1 + access_token_index) % 2
-#                 traceback.print_exc(file=sys.stdout)
-#                 print e
-
-#         for result in results:
-#             keys = result.keys()
-#             for key in keys:
-#                 try:
-#                     r.write(result[key] + "\t" + key + "\n")
-#                 except Exception as e:
-#                     print e
-#     return True
+    def write_results(self):
+        """
+        Writes the results to a .csv once everything has been processed. 
+        Writes a file in "/repos" in the form defined by self.result_file_path.
+        """
+        with open(self.results_file_path, "wb") as f:
+            for result in self.key_candidates:
+                keys = result.keys()
+                for key in keys:
+                    try: 
+                        f.write(result[key] + "\t" + key + "\n")
+                    except Exception as e:
+                        print e
 
 
-# def pulldown_events(access_token, amount_per_page=100):
-#     """
-#     Pulls down 100 of the most recent events.
-#     """
-#     endpoint = "https://api.github.com/events?per_page=" + str(amount_per_page) + "&access_token=" + access_token
-#     response = urllib2.urlopen(endpoint)
+    def summary(self):
+        """
+        Prints a summary of the run.
+        """
+        print "The monitor started at: ", self.start_time
+        print "The monitor ran for: ", self.runtime
+        print "Rotated keys: %s many times" % (self.num_key_rotations)
+        print "The number of repos: ", self.repos
+        print "The number of events: ", self.events
+        print "The number of key candidates: ", len(self.num_key_candidates)
+        print "The ID of the first event scanned: ", self.first_event_id
+        print "The ID of the last event scanned: ", self.last_event_id
+        print "RESULTS: "
+        print "*"*50
+        print self.pretty_print()
 
-#     return json.load(response)
 
-
-# def scrape_event(event_json, access_token):
-#     """
-#     Method takes a json object of the GitHub API's "event" and extracts individual file urls
-#     for scraping.
-#     """
-#     raw_urls = []
-
-#     for commit in event_json['payload']['commits']:
-#         try:
-#             response = urllib2.urlopen(commit['url'] + "?access_token=" + access_token)
-#             data = json.load(response)
-#             for each in data['files']:
-#                 if "." in each['raw_url'].split("/")[-1]: raw_urls.append(each['raw_url'])
-#         except Exception as e:
-#             print e
-
-#     return filter_files(raw_urls)
+    def pretty_print(self):
+        """
+        Overwriting the string representation of the class.
+        """
+        for result in self.key_candidates:
+            keys = result.keys()
+            for key in keys:
+                print "Key: %s. \n" % (result[key])
+                print "URL: %s. \n" % (key)
+                print "*"*50
 
 
 if __name__ == "__main__":
-    # monitor_events()
-    print "Starting at: ", str(datetime.now())
-    monitor = Monitor(5)
+    monitor = Monitor(5, debug=True)
     monitor.run()
-    print "Ending at: ", str(datetime.now())
+    monitor.summary()
 
 
 
