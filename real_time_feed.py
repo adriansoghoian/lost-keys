@@ -5,13 +5,14 @@ from scrape_repos import filter_files
 from Queue import Queue
 from time import sleep
 from threading import Thread
+from multiprocessing import Pool
 import urllib2, json, time
 import traceback, sys
 
 
 class Monitor(object):
 
-    def __init__(self, monitor_duration, num_threads=10, debug=True):
+    def __init__(self, monitor_duration, num_threads=10, debug=True, use_multiprocess=False):
         self.monitor_duration = monitor_duration # duration in minutes
         self.debug = debug
         self.num_repos = 0
@@ -86,6 +87,7 @@ class Monitor(object):
             self.convert_events_to_urls(new_events)
 
         self.last_event_id = new_events[0]['id']
+
 
     def convert_events_to_urls(self, new_events):
         """
@@ -177,14 +179,14 @@ class Monitor(object):
 
     def pretty_print(self):
         """
-        Overwriting the string representation of the class.
+        Pretty prints the key candidates after the monitor is complete.
         """
         for result in self.key_candidates:
             keys = result.keys()
             for key in keys:
                 print "Key: %s. \n" % (result[key])
                 print "URL: %s. \n" % (key)
-                print "*"*50
+                print "*"*50 + "\n"
 
 
 if __name__ == "__main__":
