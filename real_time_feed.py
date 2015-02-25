@@ -59,22 +59,23 @@ class Monitor(object):
 
         self.url_tasks.join()
         self.write_results()
-        self.runtime = (datetime.now() - self.start_time()).total_seconds()/60
+        self.runtime = (datetime.now() - self.start_time).total_seconds()/60
 
 
     def threadable_url_consumer(self):
         """
         A threadable method to consume and process urls off the task queue.
         """
-        while self.keep_querying:
+        while True:
             url = self.url_tasks.get()
-
+            self.url_tasks.task_done()
             candidates_in_url = scan_text_violently(text=get_file(file_path=url))
             candidates_in_url = [ {each: url} for each in candidates_in_url ]
-
+            
+            if self.debug and not self.keep_querying: print "Remaining tasks in queue: ", self.url_tasks.qsize() 
             if self.debug and len(candidates_in_url) > 0: print "Key candidates: ", candidates_in_url
             self.key_candidates += candidates_in_url
-            self.url_tasks.task_done()
+            self.num_key_candidates += len(candidates_in_url)
 
 
     def threadable_retrieve_event_urls(self):
@@ -98,7 +99,6 @@ class Monitor(object):
             self.num_events += 1
             urls = []
             if event['type'] == "PushEvent": 
-                if self.debug: print "Scanning push event: ", i
                 self.num_repos += 1
                 for commit in event['payload']['commits']:
                     try:
@@ -108,7 +108,6 @@ class Monitor(object):
                             if "." in each_file['raw_url'].split("/")[-1]:
                                 urls.append(each_file['raw_url'])
                         urls = filter_files(urls)
-                        if self.debug: "Printing these urls: ", urls 
                         map(self.url_tasks.put, urls)
                     except Exception as e:
                         self.rotate_access_token()
@@ -165,11 +164,11 @@ class Monitor(object):
         Prints a summary of the run.
         """
         print "The monitor started at: ", self.start_time
-        print "The monitor ran for: ", self.runtime
+        print "The monitor ran for: %s minutes." % (str(self.runtime))
         print "Rotated keys: %s many times" % (self.num_key_rotations)
-        print "The number of repos: ", self.repos
-        print "The number of events: ", self.events
-        print "The number of key candidates: ", len(self.num_key_candidates)
+        print "The number of repos: ", self.num_repos
+        print "The number of events: ", self.num_events
+        print "The number of key candidates: ", self.num_key_candidates
         print "The ID of the first event scanned: ", self.first_event_id
         print "The ID of the last event scanned: ", self.last_event_id
         print "RESULTS: "
@@ -184,13 +183,13 @@ class Monitor(object):
         for result in self.key_candidates:
             keys = result.keys()
             for key in keys:
-                print "Key: %s. \n" % (result[key])
-                print "URL: %s. \n" % (key)
+                print "URL: %s. \n" % (result[key])
+                print "KEY: %s. \n" % (key)
                 print "*"*50 + "\n"
 
 
 if __name__ == "__main__":
-    monitor = Monitor(4, debug=True)
+    monitor = Monitor(60, debug=False)
     monitor.run()
     monitor.summary()
 
