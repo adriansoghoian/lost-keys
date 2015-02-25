@@ -17,6 +17,7 @@ class Monitor(object):
         self.debug = debug
         self.num_repos = 0
         self.num_key_rotations = 0
+        self.num_urls_processed = 0 ## Todo
         self.num_events = 0
         self.num_threads = num_threads
         self.num_key_candidates = 0
@@ -66,14 +67,18 @@ class Monitor(object):
         """
         A threadable method to consume and process urls off the task queue.
         """
-        while True:
+        while self.keep_scraping:
             url = self.url_tasks.get()
             self.url_tasks.task_done()
+            if self.url_tasks.qsize() == 0: self.keep_scraping = False
+            if self.debug and not self.keep_querying: print "Remaining tasks in queue: %s \n" % (str(self.url_tasks.qsize()))
+
             candidates_in_url = scan_text_violently(text=get_file(file_path=url))
             candidates_in_url = [ {each: url} for each in candidates_in_url ]
-            
-            if self.debug and not self.keep_querying: print "Remaining tasks in queue: ", self.url_tasks.qsize() 
-            if self.debug and len(candidates_in_url) > 0: print "Key candidates: ", candidates_in_url
+            if self.debug and len(candidates_in_url) > 0: 
+                print "Key candidates: ", candidates_in_url
+                print "\n"
+
             self.key_candidates += candidates_in_url
             self.num_key_candidates += len(candidates_in_url)
 
