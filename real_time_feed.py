@@ -190,7 +190,7 @@ class Monitor(object):
 
 
 if __name__ == "__main__":
-    monitor = Monitor(5, debug=True)
+    monitor = Monitor(4, debug=True)
     monitor.run()
     monitor.summary()
 
