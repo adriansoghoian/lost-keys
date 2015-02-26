@@ -33,13 +33,11 @@ class Monitor(object):
         self.runtime = None
         self.results_file_path = "repos/realtime_feed_" + str(self.start_time) + ".csv"
 
-
     def run(self):
         """
         Main execution method for monitor. Spawns a process to pulldown and convert 
         Github events into raw urls, then spawns several processes to consume the urls and 
         extract keys. 
-
         Raw urls are managed by a Queue, from which "url tasks" are popped off and processed by 
         the threadable_url_consumer method. 
         """
@@ -59,18 +57,20 @@ class Monitor(object):
                 print "%s many tasks remaining to be processed." % (str(self.url_tasks.qsize()))
 
         self.url_tasks.join()
+        self.dedupe_results
         self.write_results()
         self.runtime = (datetime.now() - self.start_time).total_seconds()/60
+        self.summary()
 
 
     def threadable_url_consumer(self):
         """
         A threadable method to consume and process urls off the task queue.
         """
-        while self.keep_scraping:
+        while True:
             url = self.url_tasks.get()
             self.url_tasks.task_done()
-            if self.url_tasks.qsize() == 0: self.keep_scraping = False
+            if self.url_tasks.qsize() == 0 and not self.keep_querying: break
             if self.debug and not self.keep_querying: print "Remaining tasks in queue: %s \n" % (str(self.url_tasks.qsize()))
 
             candidates_in_url = scan_text_violently(text=get_file(file_path=url))
@@ -81,7 +81,6 @@ class Monitor(object):
 
             self.key_candidates += candidates_in_url
             self.num_key_candidates += len(candidates_in_url)
-
 
     def threadable_retrieve_event_urls(self):
         """
@@ -113,6 +112,7 @@ class Monitor(object):
                             if "." in each_file['raw_url'].split("/")[-1]:
                                 urls.append(each_file['raw_url'])
                         urls = filter_files(urls)
+                        self.num_urls_processed += len(urls)
                         map(self.url_tasks.put, urls)
                     except Exception as e:
                         self.rotate_access_token()
@@ -147,6 +147,18 @@ class Monitor(object):
         Updates Github API access token.
         """
         self.access_token_index = (self.access_token_index + 1) % len(git_access_token)
+
+
+    def dedupe_results(self):
+        """
+        Deduping list of tuple results.
+        """
+        output = {}
+        for result in results:
+            for key in result:
+                output[(key, result[key])] = 1
+
+        self.key_candidates = output.keys()
 
 
     def write_results(self):
@@ -192,13 +204,6 @@ class Monitor(object):
                 print "KEY: %s. \n" % (key)
                 print "*"*50 + "\n"
 
-
 if __name__ == "__main__":
-    monitor = Monitor(15, debug=True)
+    monitor = Monitor(10, debug=True)
     monitor.run()
-    monitor.summary()
-
-
-
-
-
