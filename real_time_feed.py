@@ -17,7 +17,7 @@ class Monitor(object):
         self.debug = debug
         self.num_repos = 0
         self.num_key_rotations = 0
-        self.num_urls_processed = 0 ## Todo
+        self.num_urls_processed = 0
         self.num_events = 0
         self.num_threads = num_threads
         self.num_key_candidates = 0
@@ -31,6 +31,7 @@ class Monitor(object):
         self.start_time = datetime.now()
         self.end_time = self.start_time + timedelta(minutes=self.monitor_duration)
         self.runtime = None
+        self.scantime = None
         self.results_file_path = "repos/realtime_feed_" + str(self.start_time) + ".csv"
 
     def run(self):
@@ -53,6 +54,7 @@ class Monitor(object):
         while self.keep_querying:
             if (datetime.now() - self.end_time).total_seconds() > 0:
                 self.keep_querying = False
+
                 print "STOPPING RETRIEVING EVENTS. \n" 
                 print "%s many tasks remaining to be processed." % (str(self.url_tasks.qsize()))
 
@@ -92,6 +94,7 @@ class Monitor(object):
             self.convert_events_to_urls(new_events)
 
         self.last_event_id = new_events[0]['id']
+        self.scantime = (datetime.now() - self.start_time).total_seconds() / 60
 
 
     def convert_events_to_urls(self, new_events):
@@ -155,6 +158,9 @@ class Monitor(object):
         """
         output = {}
         for result in results:
+            print "Here is the result: "
+            print result
+            print "YOO"*100
             for key in result:
                 output[(key, result[key])] = 1
 
@@ -181,7 +187,8 @@ class Monitor(object):
         Prints a summary of the run.
         """
         print "The monitor started at: ", self.start_time
-        print "The monitor ran for: %s minutes." % (str(self.runtime))
+        print "The monitor ran in total for: %s minutes." % (str(self.runtime))
+        print "The monitor scanned Github events for: %s minutes." % (str(self.scantime))
         print "Rotated keys: %s many times" % (self.num_key_rotations)
         print "The number of repos: ", self.num_repos
         print "The number of events: ", self.num_events
@@ -205,5 +212,5 @@ class Monitor(object):
                 print "*"*50 + "\n"
 
 if __name__ == "__main__":
-    monitor = Monitor(10, debug=True)
+    monitor = Monitor(3, debug=False)
     monitor.run()
