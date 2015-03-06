@@ -37,7 +37,7 @@ def get_branches(repo, username, access_token=git_access_token[0]):
         branch_list = [branch['name'] for branch in data]
         return branch_list
     except Exception as e:
-        print e, '\t', endpoint
+        # print e, '\t', endpoint
         return []
 
 
@@ -55,7 +55,7 @@ def get_files(repo, username, branch='master', access_token=git_access_token[0])
         file_path_list = ['https://raw.githubusercontent.com/' + username + '/' + repo + '/' + branch + '/' + file_name for file_name in filter_files(file_list)]
         return file_path_list
     except Exception as e:
-        print e, '\t', endpoint
+        # print e, '\t', endpoint
         return []
 
 
