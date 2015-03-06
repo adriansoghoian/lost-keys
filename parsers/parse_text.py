@@ -1,4 +1,5 @@
-import urllib2, json, sys, re
+import urllib2
+import re
 from datetime import datetime
 
 
@@ -66,15 +67,21 @@ excl_chars = set(["<", ">", "\\", "[", "]", "{", "}", "?", "::", "_", "|", "."])
 
 
 def get_file(file_path):
+    """
+    @returns: raw url response given a url path
+    """
     try:
         response = urllib2.urlopen(file_path).read()
         return response
     except Exception as e:
-        print e, '\t', file_path
+        # print e, '\t', file_path
         return ""
 
 
-def scan_text_violently(text):
+def scan_text(text):
+    """
+    Identifies potential api keys in a text file
+    """
     try:
         output = []
         text = text.decode('utf-8')
@@ -146,20 +153,24 @@ def scan_text_violently(text):
 
 
 def is_key(candidate):
+    """
+    @returns: boolean to determine whether or not candidate is an api key
+    """
     return ((200 > len(candidate) >= 20) and ((not any(substr in candidate.lower() for substr in exclusion_substr) and any(c.isalpha() for c in candidate) and any(c.isdigit() for c in candidate)) and (not any(c in candidate for c in excl_chars) or any(wm in candidate.lower() for wm in end_watermarks) or any(wm in candidate.lower() for wm in front_watermarks))))
 
 
 def detect_keys_in_file(file_batch):
+    """
+    Given a batch of files, process them and return deduped candiates
+    """
     repo_dict = {}
     for f in file_batch:
         repo_path = f.split('/')[3] + '/' + f.split('/')[4]
         if repo_path not in repo_dict.keys():
             repo_dict[repo_path] = []
 
-        candidates_in_file = scan_text_violently(text=get_file(file_path=f))
+        candidates_in_file = scan_text(text=get_file(file_path=f))
         candidates_in_file = [{each: f} for each in candidates_in_file]
-
-        # print candidates_in_file
 
         repo_dict[repo_path] += candidates_in_file
 
@@ -167,6 +178,9 @@ def detect_keys_in_file(file_batch):
 
 
 def dedupe_dict(file_dict):
+    """
+    dedupes a dictionary
+    """
     output_dict = {}
     repos = file_dict.keys()
     for repo in repos:
@@ -175,14 +189,6 @@ def dedupe_dict(file_dict):
             for k, v in d.iteritems():
                 output_dict[k] = v
     return output_dict
-
-
-def dedupe(seq):
-    # http://www.peterbe.com/plog/uniqifiers-benchmark
-    keys = {}
-    for e in seq:
-        keys[e] = 1
-    return keys.keys()
 
 
 if __name__ == '__main__':

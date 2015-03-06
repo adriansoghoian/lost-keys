@@ -1,10 +1,15 @@
-import urllib2, json, sys
+import urllib2
+import json
 from datetime import datetime
 from patterns.patterns import *
 from secrets import git_access_token
 
 
 def get_repos(username, access_token=git_access_token[0]):
+    """
+    @reference: https://developer.github.com/v3/repos/#get
+    @returns: list of public branch names belonging to username
+    """
     endpoint = "https://api.github.com/users/" + \
         username + "/repos?per_page=100&access_token=" + access_token
     try:
@@ -20,6 +25,10 @@ def get_repos(username, access_token=git_access_token[0]):
 
 
 def get_branches(repo, username, access_token=git_access_token[0]):
+    """
+    @reference: https://developer.github.com/v3/repos/#list-branches
+    @returns: list of public branches in repository
+    """
     endpoint = "https://api.github.com/repos/" + username + \
         "/" + repo + "/branches?access_token=" + access_token
     try:
@@ -32,7 +41,10 @@ def get_branches(repo, username, access_token=git_access_token[0]):
         return []
 
 
-def get_files(branch, repo, username, access_token=git_access_token[0]):
+def get_files(repo, username, branch='master', access_token=git_access_token[0]):
+    """
+    @returns: list of file content in a given repository
+    """
     endpoint = "https://api.github.com/repos/" + username + \
         "/" + repo + "/git/trees/" + branch + "?recursive=1&access_token=" + \
         access_token
@@ -48,6 +60,9 @@ def get_files(branch, repo, username, access_token=git_access_token[0]):
 
 
 def filter_files(files):
+    """
+    @returns: list of files filtered through @patterns list
+    """
     output = []
     for each in files:
         try:
@@ -62,32 +77,28 @@ def filter_files(files):
 
 
 def get_user_file_list(username):
+    """
+    @returns: list of files belonging to a user across all repositories
+    """
     repos = get_repos(username=username)
     user_file_list = []
     for repo in repos:
-        # branches = get_branches(repo=repo, username=username)
         branches = ['master']
         for branch in branches:
-            user_file_list += get_files(
-                branch=branch, repo=repo, username=username)
+            user_file_list += get_files(repo=repo, username=username)
     return user_file_list
 
 
 def get_repo_file_list(username, repo, access_token=git_access_token[0]):
+    """
+    @returns: list of files belonging to a repository across all branches
+    """
     file_list = []
     branches = get_branches(repo=repo, username=username, access_token=access_token)
     for branch in branches:
-        #print branch
-        file_list += get_files(branch=branch, repo=repo, username=username, access_token=access_token)
+        file_list += get_files(repo=repo, username=username, branch=branch, access_token=access_token)
     return file_list
 
 
 if __name__ == '__main__':
-    start = datetime.now()
-    #username = sys.argv[1]
-
-    user_file_list = get_repo_file_list("avatch","keycommit")
-    # for f in user_file_list:
-    #     print f
-
-    print 'Task Completed:\t', datetime.now() - start
+    print 'runtime:\t', str(datetime.now() - start)

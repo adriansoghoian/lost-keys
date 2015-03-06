@@ -1,7 +1,6 @@
 def read_patterns(file_path):
     patterns = []
 
-    # for file_path in pattern_files:
     with open(file_path, "rb") as f:
         for line in f.xreadlines():
             patterns.append(line.rstrip())
