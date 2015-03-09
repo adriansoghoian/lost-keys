@@ -1,7 +1,6 @@
 from scrapers.scrape_repos import filter_files
 from parsers.parse_text import get_file
 from parsers.parse_text import scan_text
-
 from secrets import git_access_token
 from datetime import datetime, timedelta
 from Queue import Queue
@@ -172,36 +171,6 @@ class Monitor(object):
         self.access_token_index = (self.access_token_index + 1) % len(git_access_token)
 
 
-    # def dedupe_results(self):
-    #     """
-    #     Deduping list of tuple results.
-    #     """
-    #     output = {}
-    #     for result in results:
-    #         print "Here is the result: "
-    #         print result
-    #         print "YOO"*100
-    #         for key in result:
-    #             output[(key, result[key])] = 1
-
-    #     self.key_candidates = output.keys()
-
-
-    # def write_results(self):
-    #     """
-    #     Writes the results to a .csv once everything has been processed. 
-    #     Writes a file in "/repos" in the form defined by self.result_file_path.
-    #     """
-    #     with open(self.results_file_path, "wb") as f:
-    #         for result in self.key_candidates:
-    #             keys = result.keys()
-    #             for key in keys:
-    #                 try:
-    #                     f.write(result[key] + "\t" + key + "\n")
-    #                 except Exception as e:
-    #                     print e
-
-
     def summary(self):
         """
         Prints a summary of the run.
@@ -220,5 +189,5 @@ class Monitor(object):
 
 
 if __name__ == "__main__":
-    monitor = Monitor(3, debug=True)
+    monitor = Monitor(2, debug=True)
     monitor.run()
