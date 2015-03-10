@@ -27,11 +27,13 @@ class Monitor(object):
         self.access_token_index = 0
         self.keep_querying = True
         self.keep_scraping = True
+        self.trailing_key_window = [] # TODO
         self.start_time = datetime.now()
         self.end_time = self.start_time + timedelta(minutes=self.monitor_duration)
         self.runtime = None
         self.scantime = None
         self.results_file_path = "repos/realtime_feed_" + str(self.start_time) + ".csv"
+
 
     def run(self):
         """
@@ -66,6 +68,7 @@ class Monitor(object):
         self.runtime = (datetime.now() - self.start_time).total_seconds()/60
         self.summary()
 
+
     def threadable_writer(self):
         with open("data/realtime_github_repo_results_" + str(datetime.now()) + ".csv", "a") as r:
             while True:
@@ -73,15 +76,22 @@ class Monitor(object):
                     # there are results, so write them to the file
                     results = self.results_q.get()
                     for result in results:
-                        keys = result.keys()
-                        if keys:
-                            for key in keys:
-                                try:
-                                    r.write(result[key] + "\t" + key + "\n")
-                                except Exception as e:
-                                    print e
+                        try:
+                            r.write(result[1] + "\t" + result[0] + "\n")
+                        except Exception as e:
+                            print "Error printing: ", e
+                    # results = self.results_q.get()
+                    # for result in results:
+                    #     keys = result.keys()
+                    #     if keys:
+                    #         for key in keys:
+                    #             try:
+                    #                 r.write(result[key] + "\t" + key + "\n")
+                    #             except Exception as e:
+                    #                 print e
 
                     self.results_q.task_done()
+
 
     def threadable_url_consumer(self):
         """
@@ -94,12 +104,16 @@ class Monitor(object):
             if self.debug and not self.keep_querying: print "Remaining tasks in queue: %s \n" % (str(self.url_tasks.qsize()))
 
             candidates_in_url = scan_text(text=get_file(file_path=url))
-            candidates_in_url = [ {each: url} for each in candidates_in_url ]
+            candidates_in_url = [ (each, url) for each in candidates_in_url ]
+            candidates_in_url = list(set(candidates_in_url))
+            candidates_in_url = [ elem for elem in candidates_in_url if elem not in self.trailing_key_window ]
+
             if self.debug and len(candidates_in_url) > 0: 
                 print "Key candidates: ", candidates_in_url
                 print "\n"
 
             self.results_q.put(candidates_in_url)
+            self.trailing_key_window = candidates_in_url
             self.num_key_candidates += len(candidates_in_url)
 
 
@@ -133,7 +147,7 @@ class Monitor(object):
                         for each_file in data['files']:
                             if "." in each_file['raw_url'].split("/")[-1]:
                                 urls.append(each_file['raw_url'])
-                        urls = filter_files(urls)
+                        urls = list(set(filter_files(urls)))
                         self.num_urls_processed += len(urls)
                         map(self.url_tasks.put, urls)
                     except Exception as e:
@@ -178,16 +192,15 @@ class Monitor(object):
         print "The monitor started at: ", self.start_time
         print "The monitor ran in total for: %s minutes." % (str(self.runtime))
         print "The monitor scanned Github events for: %s minutes." % (str(self.scantime))
-        print "Rotated keys: %s many times" % (self.num_key_rotations)
+        print "Rotated keys: %s many times" % (str(self.num_key_rotations))
         print "The number of repos: ", self.num_repos
         print "The number of events: ", self.num_events
         print "The number of key candidates: ", self.num_key_candidates
         print "The ID of the first event scanned: ", self.first_event_id
         print "The ID of the last event scanned: ", self.last_event_id
-        print "RESULTS: "
         print "*"*50
 
 
 if __name__ == "__main__":
-    monitor = Monitor(2, debug=True)
+    monitor = Monitor(1, debug=True)
     monitor.run()
