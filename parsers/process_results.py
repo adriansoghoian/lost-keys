@@ -22,6 +22,8 @@ def extract_statistics(file_paths):
                 num_keys += 1
                 if "akia" in line_pieces[1].lower(): amazon.append(line_pieces[1])
                 if "aiza" in line_pieces[1].lower(): google.append(line_pieces[1])
+    google = list(set(google))
+    amazon = list(set(amazon))
 
     print "HERE ARE THE RESULTS: \n"
     print "NUMBER OF KEY CANDIDATES: %s \n" % (str(num_keys))
