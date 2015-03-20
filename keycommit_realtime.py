@@ -72,25 +72,17 @@ class Monitor(object):
     def threadable_writer(self):
         with open("data/realtime_github_repo_results_" + str(datetime.now()) + ".csv", "a") as r:
             while True:
-                while self.results_q.qsize() > 0:
+                    try:
                     # there are results, so write them to the file
-                    results = self.results_q.get()
-                    for result in results:
-                        try:
-                            r.write(result[1] + "\t" + result[0] + "\n")
-                        except Exception as e:
-                            print "Error printing: ", e
-                    # results = self.results_q.get()
-                    # for result in results:
-                    #     keys = result.keys()
-                    #     if keys:
-                    #         for key in keys:
-                    #             try:
-                    #                 r.write(result[key] + "\t" + key + "\n")
-                    #             except Exception as e:
-                    #                 print e
-
-                    self.results_q.task_done()
+                        results = self.results_q.get()
+                        for result in results:
+                            try:
+                                r.write(result[1] + "\t" + result[0] + "\n")
+                            except Exception as e:
+                                print "Error printing: ", e
+                        self.results_q.task_done()
+                    except Exception as e:
+                        pass
 
 
     def threadable_url_consumer(self):
@@ -103,6 +95,7 @@ class Monitor(object):
             if self.url_tasks.qsize() == 0 and not self.keep_querying: break
             if self.debug and not self.keep_querying: print "Remaining tasks in queue: %s \n" % (str(self.url_tasks.qsize()))
 
+            if url == None: continue
             candidates_in_url = scan_text(text=get_file(file_path=url))
             candidates_in_url = [ (each, url) for each in candidates_in_url ]
             candidates_in_url = list(set(candidates_in_url))
@@ -202,5 +195,5 @@ class Monitor(object):
 
 
 if __name__ == "__main__":
-    monitor = Monitor(1, debug=True)
+    monitor = Monitor(10, debug=True)
     monitor.run()

@@ -35,13 +35,5 @@ def extract_statistics(file_paths):
 
 
 if __name__ == "__main__":
-    paths = ["/Users/adrian/desktop/data/github_repo_list_01_results_2015-03-06 21:07:59.399013.csv", 
-            "/Users/adrian/desktop/data/github_repo_list_02_results_2015-03-06 21:08:45.492474.csv",
-            "/Users/adrian/desktop/data/github_repo_list_03_results_2015-03-06 21:10:56.078463.csv",
-            "/Users/adrian/desktop/data/github_repo_list_04_results_2015-03-06 21:11:43.421709.csv",
-            "/Users/adrian/desktop/data/github_repo_list_05_results_2015-03-06 21:12:34.892167.csv",
-            "/Users/adrian/desktop/data/github_repo_list_06_results_2015-03-06 21:13:36.294829.csv",
-            "/Users/adrian/desktop/data/github_repo_list_07_results_2015-03-06 21:14:07.787182.csv",
-            "/Users/adrian/desktop/data/github_repo_list_08_results_2015-03-06 21:14:56.007094.csv"
-    ]
+    paths = ["/Users/adrian/workspace/lost-keys/data/realtime_github_repo_results_2015-03-19 13:19:45.390058.csv"]
     extract_statistics(paths)
