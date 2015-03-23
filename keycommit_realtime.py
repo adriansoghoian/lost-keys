@@ -43,9 +43,10 @@ class Monitor(object):
         Raw urls are managed by a Queue, from which "url tasks" are popped off and processed by 
         the threadable_url_consumer method. 
         """
-        event_retriever = Thread(target=self.threadable_retrieve_event_urls, args=())
-        event_retriever.setDaemon(True)
-        event_retriever.start()
+        for _ in range(2):
+            event_retriever = Thread(target=self.threadable_retrieve_event_urls, args=())
+            event_retriever.setDaemon(True)
+            event_retriever.start()
 
         writer_thread = Thread(target=self.threadable_writer, args=())
         writer_thread.setDaemon(True)
