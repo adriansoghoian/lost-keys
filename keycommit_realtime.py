@@ -137,7 +137,9 @@ class Monitor(object):
             urls = []
             if event['type'] == "PushEvent":
                 self.num_repos += 1
+                print datetime.now()
                 print event['actor']['login']
+                print "*"*25
                 # for commit in event['payload']['commits']:
                 #     try:
                 #         response = urllib2.urlopen(commit['url'] + "?access_token=" + git_access_token[self.access_token_index])
@@ -167,7 +169,7 @@ class Monitor(object):
                 response = urllib2.urlopen(endpoint)
                 data = json.load(response)
                 if int(data[-1]['id']) < self.last_event_id:
-                    sleep(1)
+                    sleep(0.1)
                 else:
                     self.last_event_id = int(data[-1]['id'])
                     return data
