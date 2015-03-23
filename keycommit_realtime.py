@@ -47,14 +47,14 @@ class Monitor(object):
         event_retriever.setDaemon(True)
         event_retriever.start()
 
-        writer_thread = Thread(target=self.threadable_writer, args=())
-        writer_thread.setDaemon(True)
-        writer_thread.start()
+        # writer_thread = Thread(target=self.threadable_writer, args=())
+        # writer_thread.setDaemon(True)
+        # writer_thread.start()
 
-        for i in range(1, self.num_threads):
-            event_processor = Thread(target=self.threadable_url_consumer, args=())
-            event_processor.setDaemon(True)
-            event_processor.start()
+        # for i in range(1, self.num_threads):
+        #     event_processor = Thread(target=self.threadable_url_consumer, args=())
+        #     event_processor.setDaemon(True)
+        #     event_processor.start()
 
         while self.keep_querying:
             if (datetime.now() - self.end_time).total_seconds() > 0:
@@ -133,19 +133,20 @@ class Monitor(object):
             urls = []
             if event['type'] == "PushEvent":
                 self.num_repos += 1
-                for commit in event['payload']['commits']:
-                    try:
-                        response = urllib2.urlopen(commit['url'] + "?access_token=" + git_access_token[self.access_token_index])
-                        data = json.load(response)
-                        for each_file in data['files']:
-                            if "." in each_file['raw_url'].split("/")[-1]:
-                                urls.append(each_file['raw_url'])
-                        urls = list(set(filter_files(urls)))
-                        self.num_urls_processed += len(urls)
-                        map(self.url_tasks.put, urls)
-                    except Exception as e:
-                        self.rotate_access_token()
-                        self.num_key_rotations += 1
+                print event['actor']['login']
+                # for commit in event['payload']['commits']:
+                #     try:
+                #         response = urllib2.urlopen(commit['url'] + "?access_token=" + git_access_token[self.access_token_index])
+                #         data = json.load(response)
+                #         for each_file in data['files']:
+                #             if "." in each_file['raw_url'].split("/")[-1]:
+                #                 urls.append(each_file['raw_url'])
+                #         urls = list(set(filter_files(urls)))
+                #         self.num_urls_processed += len(urls)
+                #         map(self.url_tasks.put, urls)
+                #     except Exception as e:
+                #         self.rotate_access_token()
+                #         self.num_key_rotations += 1
             else:
                 continue
 
@@ -195,5 +196,5 @@ class Monitor(object):
 
 
 if __name__ == "__main__":
-    monitor = Monitor(10, debug=True)
+    monitor = Monitor(10, debug=False)
     monitor.run()
