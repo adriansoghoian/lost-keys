@@ -47,6 +47,10 @@ class Monitor(object):
         event_retriever.setDaemon(True)
         event_retriever.start()
 
+        event_retriever_2 = Thread(target=self.threadable_retrieve_event_urls, args=())
+        event_retriever_2.setDaemon(True)
+        event_retriever_2.start()
+
         # writer_thread = Thread(target=self.threadable_writer, args=())
         # writer_thread.setDaemon(True)
         # writer_thread.start()
