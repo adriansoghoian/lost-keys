@@ -1,6 +1,6 @@
-from scrapers.scrape_repos import filter_files
-from parsers.parse_text import get_file
-from parsers.parse_text import scan_text
+from scrapers.scrape_repos import Scraper
+from parsers.parse_text import Parser
+#from parsers.parse_text import scan_text
 from secrets import git_access_token
 from datetime import datetime, timedelta
 from Queue import Queue
@@ -97,9 +97,10 @@ class Monitor(object):
             if self.debug and not self.keep_querying: print "Remaining tasks in queue: %s \n" % (str(self.url_tasks.qsize()))
 
             if url == None: continue
-            candidates_in_url = scan_text(text=get_file(file_path=url))
-            candidates_in_url = [ (each, url) for each in candidates_in_url ]
-            candidates_in_url = list(set(candidates_in_url))
+            # candidates_in_url = scan_text(text=get_file(file_path=url))#
+            # candidates_in_url = [ (each, url) for each in candidates_in_url ]#
+            # candidates_in_url = list(set(candidates_in_url))#
+            candidates_in_url = Parser.get_keys(url)
             candidates_in_url = [ elem for elem in candidates_in_url if elem not in self.trailing_key_window ]
 
             if self.debug and len(candidates_in_url) > 0: 
@@ -141,7 +142,7 @@ class Monitor(object):
                         for each_file in data['files']:
                             if "." in each_file['raw_url'].split("/")[-1]:
                                 urls.append(each_file['raw_url'])
-                        urls = list(set(filter_files(urls)))
+                        urls = list(set(Scraper.filter_files(urls)))
                         self.num_urls_processed += len(urls)
                         map(self.url_tasks.put, urls)
                     except Exception as e:
